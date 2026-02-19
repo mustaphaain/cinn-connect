@@ -1,0 +1,14 @@
+node_modules
+.pnpm-store
+.turbo
+dist
+build
+.env
+.env.*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+
