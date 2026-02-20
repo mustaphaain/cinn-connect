@@ -10,7 +10,10 @@
   "scripts": {
     "dev": "pnpm -C frontend dev",
     "build": "pnpm -C frontend build",
-    "lint": "pnpm -C frontend lint"
+    "lint": "pnpm -C frontend lint",
+    "dev:backend": "pnpm -C backend dev",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
   }
 }
 
