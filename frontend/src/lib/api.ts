@@ -25,11 +25,22 @@ async function request<T>(path: string, options: RequestInit & { json?: unknown 
   if (token) {
     (headers as Record<string, string>)['Authorization'] = 'Bearer ' + token
   }
-  const res = await fetch(BASE + path, {
-    ...init,
-    headers,
-    body: json !== undefined ? JSON.stringify(json) : init.body,
-  })
+  let res: Response
+  try {
+    res = await fetch(BASE + path, {
+      ...init,
+      headers,
+      body: json !== undefined ? JSON.stringify(json) : init.body,
+    })
+  } catch (err) {
+    const msg =
+      err instanceof TypeError && err.message === 'Failed to fetch'
+        ? `Impossible de joindre le serveur (${BASE}). Vérifie que le backend tourne : pnpm -C backend dev. Et que frontend/.env contient VITE_API_URL=http://localhost:3001`
+        : err instanceof Error
+          ? err.message
+          : 'Erreur réseau'
+    throw new Error(msg)
+  }
   const data = (await res.json().catch(() => ({}))) as T & { error?: string }
   if (!res.ok) {
     throw new Error((data as { error?: string }).error || 'HTTP ' + res.status)
