@@ -2,7 +2,7 @@
 
 Monorepo du projet **CinéConnect** (HETIC Web2).
 
-## Démarrage (frontend)
+## Démarrage
 
 1. Installer les dépendances :
 
@@ -16,3 +16,7 @@ pnpm install
 pnpm dev
 ```
 
+3. Lancer le back :
+```bash
+pnpm -C backend dev 
+```

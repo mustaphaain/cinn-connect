@@ -19,9 +19,4 @@ body {
   }
 }
 
-@layer utilities {
-  .bg-grid {
-    background-image: radial-gradient(circle at 1px 1px, rgba(120, 113, 108, 0.25) 1px, transparent 0);
-    background-size: 24px 24px;
-  }
-}
+

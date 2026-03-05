@@ -28,4 +28,6 @@ app.use('/messages', messageRoutes)
 app.get('/health', (_req, res) => res.json({ ok: true, message: 'CinéConnect API' }))
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiSpec))
 
-server.listen(port, () => console.log(`Serveur sur http://localhost:${port}`))
+server.listen(port, "0.0.0.0", () => 
+  console.log(`Serveur sur http://127.0.0.1:${port}`)
+)
