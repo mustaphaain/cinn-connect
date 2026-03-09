@@ -51,6 +51,7 @@ export function Navbar() {
           >
             Profil
           </Link>
+
           {!loading && (
             <span className="ml-2 flex items-center gap-2">
               {user ? (

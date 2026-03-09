@@ -58,7 +58,9 @@ function FilmsPage() {
         <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-gradient-to-br from-indigo-500/20 to-fuchsia-500/20 blur-2xl" />
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">Films</h1>
+            <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+              Films
+            </h1>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
               {q.trim() ? 'Résultats de recherche' : 'Tous les films (toutes catégories confondues).'} Recherche via OMDb.
             </p>
@@ -72,7 +74,7 @@ function FilmsPage() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Rechercher un film…"
-              className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-indigo-600/20 focus:ring-4 dark:border-zinc-700 dark:bg-zinc-950 dark:ring-fuchsia-500/15"
+              className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none ring-indigo-600/20 focus:ring-4 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:ring-fuchsia-500/15"
             />
           </form>
         </div>
@@ -124,13 +126,13 @@ function FilmsPage() {
                     loading="lazy"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xs text-zinc-500">
+                  <div className="flex h-full w-full items-center justify-center text-xs text-zinc-500 dark:text-zinc-400">
                     Pas d’affiche
                   </div>
                 )}
               </div>
               <div className="p-3">
-                <div className="line-clamp-2 text-sm font-semibold group-hover:underline">
+                <div className="line-clamp-2 text-sm font-semibold text-zinc-900 group-hover:underline dark:text-zinc-50">
                   {m.Title}
                 </div>
                 <div className="mt-1 text-xs text-zinc-600 dark:text-zinc-300">{m.Year}</div>

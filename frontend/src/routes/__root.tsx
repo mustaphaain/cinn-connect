@@ -10,13 +10,11 @@ export const Route = createRootRouteWithContext<{
 
 function RootComponent() {
   return (
-    <div className="min-h-dvh bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
+    <div className="min-h-dvh bg-zinc-950 text-zinc-50">
       <Navbar />
-      <div className="bg-grid dark:bg-none">
-        <main className="mx-auto max-w-6xl px-4 py-6">
-          <Outlet />
-        </main>
-      </div>
+      <main className="mx-auto max-w-6xl px-4 py-6">
+        <Outlet />
+      </main>
     </div>
   )
 }

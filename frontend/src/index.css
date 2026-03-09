@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Activer le mode sombre via la classe .dark (Tailwind v4 utilise prefers-color-scheme par défaut) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 html,
 body,
 #root {
@@ -8,15 +11,20 @@ body,
 
 body {
   margin: 0;
+  color: #f9fafb;
 }
 
 @layer base {
   :root {
-    color-scheme: light;
+    color-scheme: dark;
   }
   .dark {
     color-scheme: dark;
   }
+}
+
+body {
+  background-color: #020617;
 }
 
 

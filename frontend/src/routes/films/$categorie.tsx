@@ -21,7 +21,7 @@ function FilmsByCategoryPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">
+          <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
             Catégorie : <span className="capitalize">{categorie.replace('-', ' ')}</span>
           </h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
@@ -55,13 +55,13 @@ function FilmsByCategoryPage() {
               {m.Poster && m.Poster !== 'N/A' ? (
                 <img src={m.Poster} alt={m.Title} className="h-full w-full object-cover" loading="lazy" />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs text-zinc-500">
+                <div className="flex h-full w-full items-center justify-center text-xs text-zinc-500 dark:text-zinc-400">
                   Pas d’affiche
                 </div>
               )}
             </div>
             <div className="p-3">
-              <div className="line-clamp-2 text-sm font-semibold group-hover:underline">{m.Title}</div>
+              <div className="line-clamp-2 text-sm font-semibold text-zinc-900 group-hover:underline dark:text-zinc-50">{m.Title}</div>
               <div className="mt-1 text-xs text-zinc-600 dark:text-zinc-300">{m.Year}</div>
             </div>
           </Link>

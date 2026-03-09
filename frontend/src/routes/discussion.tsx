@@ -70,7 +70,9 @@ function DiscussionPage() {
   return (
     <section className="flex flex-col rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
       <div className="border-b border-zinc-200 p-4 dark:border-zinc-800">
-        <h1 className="text-xl font-semibold tracking-tight">Discussion</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+          Discussion
+        </h1>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
           Chat temps réel (Socket.io). Connecte-toi pour envoyer un message.
         </p>
@@ -88,8 +90,8 @@ function DiscussionPage() {
             <span className="text-xs font-semibold text-indigo-600 dark:text-fuchsia-400">
               {m.username}
             </span>
-            <p className="mt-1 text-sm">{m.content}</p>
-            <p className="mt-1 text-xs text-zinc-500">{new Date(m.createdAt).toLocaleString()}</p>
+            <p className="mt-1 text-sm text-zinc-800 dark:text-zinc-200">{m.content}</p>
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{new Date(m.createdAt).toLocaleString()}</p>
           </div>
         ))}
       </div>
@@ -105,7 +107,7 @@ function DiscussionPage() {
           onKeyDown={(e) => e.key === 'Enter' && send()}
           placeholder={user ? 'Écris un message…' : 'Connecte-toi pour envoyer un message'}
           disabled={!user}
-          className="flex-1 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none dark:border-zinc-700 dark:bg-zinc-950 disabled:opacity-50"
+          className="flex-1 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:placeholder:text-zinc-500 disabled:opacity-50"
         />
         <button
           type="button"

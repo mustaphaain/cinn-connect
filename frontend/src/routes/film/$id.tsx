@@ -44,7 +44,7 @@ function FilmDetailsPage() {
             {movie.Poster && movie.Poster !== 'N/A' ? (
               <img src={movie.Poster} alt={movie.Title} className="h-full w-full object-cover" />
             ) : (
-              <div className="flex aspect-[2/3] items-center justify-center text-xs text-zinc-500">
+              <div className="flex aspect-[2/3] items-center justify-center text-xs text-zinc-500 dark:text-zinc-400">
                 Pas d’affiche
               </div>
             )}
@@ -52,7 +52,9 @@ function FilmDetailsPage() {
 
           <div className="space-y-3">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">{movie.Title}</h1>
+              <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+                {movie.Title}
+              </h1>
               <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
                 {movie.Year}
                 {movie.Runtime ? ` • ${movie.Runtime}` : ''}
@@ -66,13 +68,13 @@ function FilmDetailsPage() {
               {movie.Director && (
                 <div className="grid grid-cols-[120px_1fr] gap-3">
                   <dt className="text-zinc-600 dark:text-zinc-400">Réalisateur</dt>
-                  <dd className="font-medium">{movie.Director}</dd>
+                  <dd className="font-medium text-zinc-900 dark:text-zinc-100">{movie.Director}</dd>
                 </div>
               )}
               {movie.Actors && (
                 <div className="grid grid-cols-[120px_1fr] gap-3">
                   <dt className="text-zinc-600 dark:text-zinc-400">Acteurs</dt>
-                  <dd className="font-medium">{movie.Actors}</dd>
+                  <dd className="font-medium text-zinc-900 dark:text-zinc-100">{movie.Actors}</dd>
                 </div>
               )}
               {movie.imdbRating && (
