@@ -25,7 +25,13 @@ app.use('/users', userRoutes)
 app.use('/reviews', reviewRoutes)
 app.use('/friends', friendRoutes)
 app.use('/messages', messageRoutes)
-app.get('/health', (_req, res) => res.json({ ok: true, message: 'CinéConnect API' }))
+app.get('/health', (_req, res) => {
+  res.json({
+    ok: true,
+    service: 'cin-connect-api',
+    time: new Date().toISOString(),
+  })
+})
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiSpec))
 
 server.listen(port, "0.0.0.0", () => 

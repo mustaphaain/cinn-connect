@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Activer le mode sombre via la classe .dark (Tailwind v4 utilise prefers-color-scheme par défaut) */
+/* Activer le mode sombre via la classe sur <html> (évite le flash grâce au script inline) */
 @custom-variant dark (&:where(.dark, .dark *));
 
 html,
@@ -11,20 +11,33 @@ body,
 
 body {
   margin: 0;
-  color: #f9fafb;
+  font-family:
+    "Plus Jakarta Sans",
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
   }
-  .dark {
+  :root.dark {
     color-scheme: dark;
   }
 }
 
 body {
+  background-color: #fafafa;
+  color: #18181b;
+}
+
+html.dark body {
   background-color: #020617;
+  color: #f9fafb;
 }
 
 

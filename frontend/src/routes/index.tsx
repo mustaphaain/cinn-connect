@@ -18,9 +18,9 @@ function HomePage() {
           </span>{' '}
           et discute avec tes amis.
         </h1>
-        <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-300">
-          Prototype front de CinéConnect avec routing typé TanStack et recherche de films via
-          l’API OMDb.
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
+          Bibliothèque collaborative : explore les affiches et fiches via OMDb, connecte-toi pour
+          noter, ajouter des amis et discuter en temps réel.
         </p>
 
         <div className="mt-5 flex flex-wrap gap-3">

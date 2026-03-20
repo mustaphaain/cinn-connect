@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 
 const linkBase =
   'inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition hover:bg-zinc-100/80 hover:text-zinc-900 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-50'
@@ -58,14 +59,42 @@ function LogoutModal({ open, onCancel, onConfirm }: { open: boolean; onCancel: (
   )
 }
 
+function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme()
+  const isDark = theme === 'dark'
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+      title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+      aria-label={isDark ? 'Activer le thème clair' : 'Activer le thème sombre'}
+    >
+      {isDark ? (
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+          />
+        </svg>
+      ) : (
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+      )}
+    </button>
+  )
+}
+
 export function Navbar() {
   const { user, logout, loading } = useAuth()
   const [showLogout, setShowLogout] = useState(false)
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-zinc-200 bg-white/70 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/60">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+      <header className="sticky top-0 z-50 border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/75">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <Link to="/" className="group inline-flex items-center gap-2">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-fuchsia-600 text-sm font-bold text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10">
               C
@@ -105,11 +134,15 @@ export function Navbar() {
               Profil
             </Link>
 
+            <span className="mx-1 hidden sm:inline" aria-hidden />
+            <ThemeToggle />
             {!loading && (
-              <span className="ml-2 flex items-center gap-2">
+              <span className="ml-1 flex items-center gap-2 sm:ml-2">
                 {user ? (
                   <>
-                    <span className="text-sm text-zinc-600 dark:text-zinc-300">{user.username}</span>
+                    <span className="max-w-[8rem] truncate text-sm text-zinc-600 dark:text-zinc-300">
+                      {user.username}
+                    </span>
                     <button
                       type="button"
                       onClick={() => setShowLogout(true)}
