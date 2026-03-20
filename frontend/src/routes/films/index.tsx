@@ -16,26 +16,29 @@ export const Route = createFileRoute('/films/')({
   component: FilmsPage,
 })
 
+const MIN_SEARCH_LEN = 2
+
 function FilmsPage() {
   const [q, setQ] = useState('')
+  const qTrim = q.trim()
+  const searchActive = qTrim.length >= MIN_SEARCH_LEN
 
   const searchQuery = useQuery({
-    queryKey: ['omdb', 'search', q],
-    queryFn: () => searchMovies(q),
-    enabled: q.trim().length > 0,
+    queryKey: ['omdb', 'search', qTrim],
+    queryFn: () => searchMovies(qTrim),
+    enabled: searchActive,
   })
 
-  const showAllCategories = q.trim().length === 0
   const categoryQueries = useQueries({
     queries: categories.map((c) => ({
       queryKey: ['omdb', 'category', c.slug],
       queryFn: () => searchMovies(c.search),
-      enabled: showAllCategories,
+      enabled: !searchActive,
     })),
   })
 
   const allCategoriesItems = useMemo(() => {
-    if (!showAllCategories) return []
+    if (searchActive) return []
     const byId = new Map<string, OmdbSearchMovie>()
     for (const res of categoryQueries) {
       const list = res.data?.Search ?? []
@@ -44,12 +47,12 @@ function FilmsPage() {
       }
     }
     return Array.from(byId.values())
-  }, [showAllCategories, categoryQueries])
+  }, [searchActive, categoryQueries])
 
   const searchItems = useMemo(() => searchQuery.data?.Search ?? [], [searchQuery.data])
-  const items = q.trim().length > 0 ? searchItems : allCategoriesItems
-  const isLoading = q.trim().length > 0 ? searchQuery.isLoading : categoryQueries.some((r) => r.isLoading)
-  const error = (q.trim().length > 0 ? searchQuery.error : categoryQueries.find((r) => r.error)?.error) as Error | undefined
+  const items = searchActive ? searchItems : allCategoriesItems
+  const isLoading = searchActive ? searchQuery.isLoading : categoryQueries.some((r) => r.isLoading)
+  const error = (searchActive ? searchQuery.error : categoryQueries.find((r) => r.error)?.error) as Error | undefined
   const errorMessage = error instanceof Error ? error.message : undefined
 
   return (
@@ -62,7 +65,12 @@ function FilmsPage() {
               Films
             </h1>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-              {q.trim() ? 'Résultats de recherche' : 'Tous les films (toutes catégories confondues).'} Recherche via OMDb.
+              {searchActive
+                ? 'Résultats de recherche'
+                : qTrim.length > 0
+                  ? `Saisis au moins ${MIN_SEARCH_LEN} caractères pour lancer la recherche.`
+                  : 'Tous les films (toutes catégories confondues).'}{' '}
+              Données OMDb (clé API requise dans <code className="rounded bg-zinc-100 px-1 text-xs dark:bg-zinc-800">frontend/.env</code>).
             </p>
           </div>
 

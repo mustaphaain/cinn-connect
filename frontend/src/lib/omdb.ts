@@ -45,10 +45,10 @@ export type OmdbMovieDetails = {
 const OMDB_BASE_URL = 'https://www.omdbapi.com/'
 
 function getApiKey() {
-  const key = import.meta.env.VITE_OMDB_API_KEY as string | undefined
+  const key = (import.meta.env.VITE_OMDB_API_KEY as string | undefined)?.trim()
   if (!key) {
     throw new Error(
-      'Clé OMDb manquante. Ajoute VITE_OMDB_API_KEY dans frontend/.env (ex: VITE_OMDB_API_KEY=xxxx).',
+      'Clé OMDb manquante. Copie frontend/.env.example vers frontend/.env et renseigne VITE_OMDB_API_KEY (clé sur omdbapi.com). Puis redémarre le serveur Vite (pnpm dev).',
     )
   }
   return key
@@ -66,12 +66,17 @@ async function omdbFetch<T>(params: Record<string, string | undefined>): Promise
   return (await res.json()) as T
 }
 
-export function searchMovies(query: string, page = 1) {
-  return omdbFetch<OmdbSearchResponse>({
-    s: query,
+export async function searchMovies(query: string, page = 1) {
+  const s = query.trim()
+  const data = await omdbFetch<OmdbSearchResponse>({
+    s,
     type: 'movie',
     page: String(page),
   })
+  if (data.Response === 'False') {
+    throw new Error(data.Error?.trim() || 'Aucun résultat OMDb pour cette recherche.')
+  }
+  return data
 }
 
 export function getMovieById(imdbId: string) {
