@@ -1,9 +1,12 @@
 CREATE TABLE IF NOT EXISTS "users" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"email" varchar(255) NOT NULL UNIQUE,
-	"password_hash" text NOT NULL,
+	"password_hash" text,
 	"username" varchar(100) NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL
+	"google_id" varchar(255),
+	"avatar_url" varchar(500),
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "users_google_id_unique" UNIQUE("google_id")
 );
 
 CREATE TABLE IF NOT EXISTS "films" (

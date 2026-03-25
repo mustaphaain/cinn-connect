@@ -11,8 +11,10 @@ import {
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   email: varchar('email', { length: 255 }).notNull().unique(),
-  passwordHash: text('password_hash').notNull(),
+  passwordHash: text('password_hash'),
   username: varchar('username', { length: 100 }).notNull(),
+  googleId: varchar('google_id', { length: 255 }).unique(),
+  avatarUrl: varchar('avatar_url', { length: 500 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
@@ -58,6 +60,7 @@ export const messages = pgTable('messages', {
   senderId: integer('sender_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
+  recipientId: integer('recipient_id').references(() => users.id, { onDelete: 'cascade' }),
   content: text('content').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })

@@ -12,22 +12,35 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     .select()
     .from(friends)
     .where(or(eq(friends.userId, userId), eq(friends.friendId, userId)))
-  const accepted: { id: number; username: string; email: string }[] = []
+  const accepted: { id: number; username: string; email: string; avatarUrl: string | null }[] = []
   const pendingReceived: { id: number; username: string; userId: number }[] = []
+  const pendingSent: { id: number; username: string; userId: number }[] = []
   for (const row of rows) {
     const otherId = row.userId === userId ? row.friendId : row.userId
     const [other] = await db
-      .select({ id: users.id, username: users.username, email: users.email })
+      .select({
+        id: users.id,
+        username: users.username,
+        email: users.email,
+        avatarUrl: users.avatarUrl,
+      })
       .from(users)
       .where(eq(users.id, otherId))
     if (!other) continue
     if (row.status === 'accepted') {
-      accepted.push({ id: other.id, username: other.username, email: other.email })
+      accepted.push({
+        id: other.id,
+        username: other.username,
+        email: other.email,
+        avatarUrl: other.avatarUrl,
+      })
     } else if (row.friendId === userId) {
       pendingReceived.push({ id: other.id, username: other.username, userId: other.id })
+    } else if (row.userId === userId) {
+      pendingSent.push({ id: other.id, username: other.username, userId: other.id })
     }
   }
-  res.json({ friends: accepted, pendingReceived })
+  res.json({ friends: accepted, pendingReceived, pendingSent })
 })
 
 router.post('/', requireAuth, async (req: Request, res: Response) => {
@@ -73,6 +86,38 @@ router.patch('/:friendId/accept', requireAuth, async (req: Request, res: Respons
     return
   }
   res.json(updated[0])
+})
+
+router.delete('/:friendId/refuse', requireAuth, async (req: Request, res: Response) => {
+  const userId = (req as Request & { userId: number }).userId
+  const friendId = Number(req.params.friendId)
+  const deleted = await db
+    .delete(friends)
+    .where(
+      and(eq(friends.userId, friendId), eq(friends.friendId, userId), eq(friends.status, 'pending'))
+    )
+    .returning()
+  if (deleted.length === 0) {
+    res.status(404).json({ error: 'Demande non trouvée' })
+    return
+  }
+  res.json({ ok: true })
+})
+
+router.delete('/:friendId/cancel', requireAuth, async (req: Request, res: Response) => {
+  const userId = (req as Request & { userId: number }).userId
+  const friendId = Number(req.params.friendId)
+  const deleted = await db
+    .delete(friends)
+    .where(
+      and(eq(friends.userId, userId), eq(friends.friendId, friendId), eq(friends.status, 'pending'))
+    )
+    .returning()
+  if (deleted.length === 0) {
+    res.status(404).json({ error: 'Demande non trouvée' })
+    return
+  }
+  res.json({ ok: true })
 })
 
 export default router
