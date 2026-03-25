@@ -75,7 +75,7 @@ function FilmsPage() {
           </div>
 
           <form
-            className="flex w-full max-w-md items-center gap-2"
+            className="flex w-full max-w-md flex-col items-stretch gap-2 sm:flex-row sm:items-center"
             onSubmit={(e) => e.preventDefault()}
           >
             <input

@@ -2,6 +2,7 @@ import 'dotenv/config'
 import http from 'http'
 import express from 'express'
 import cors from 'cors'
+import cookieParser from 'cookie-parser'
 import { Server } from 'socket.io'
 import authRoutes from './routes/auth.js'
 import userRoutes from './routes/users.js'
@@ -15,11 +16,18 @@ import { openApiSpec } from './swagger.js'
 const app = express()
 const port = Number(process.env.PORT) || 3001
 const server = http.createServer(app)
-const io = new Server(server, { cors: { origin: '*' } })
+const frontendOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:5173'
+const io = new Server(server, { cors: { origin: frontendOrigin, credentials: true } })
 setupSocket(io)
 
-app.use(cors())
+app.use(
+  cors({
+    origin: frontendOrigin,
+    credentials: true,
+  })
+)
 app.use(express.json())
+app.use(cookieParser())
 app.use('/auth', authRoutes)
 app.use('/users', userRoutes)
 app.use('/reviews', reviewRoutes)

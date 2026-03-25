@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfilRouteImport } from './routes/profil'
 import { Route as DiscussionRouteImport } from './routes/discussion'
+import { Route as CompleteUsernameRouteImport } from './routes/complete-username'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FilmsIndexRouteImport } from './routes/films/index'
+import { Route as UserIdRouteImport } from './routes/user/$id'
 import { Route as FilmsCategorieRouteImport } from './routes/films/$categorie'
 import { Route as FilmIdRouteImport } from './routes/film/$id'
 
@@ -26,6 +28,11 @@ const DiscussionRoute = DiscussionRouteImport.update({
   path: '/discussion',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompleteUsernameRoute = CompleteUsernameRouteImport.update({
+  id: '/complete-username',
+  path: '/complete-username',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -34,6 +41,11 @@ const IndexRoute = IndexRouteImport.update({
 const FilmsIndexRoute = FilmsIndexRouteImport.update({
   id: '/films/',
   path: '/films/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserIdRoute = UserIdRouteImport.update({
+  id: '/user/$id',
+  path: '/user/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FilmsCategorieRoute = FilmsCategorieRouteImport.update({
@@ -49,62 +61,76 @@ const FilmIdRoute = FilmIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/complete-username': typeof CompleteUsernameRoute
   '/discussion': typeof DiscussionRoute
   '/profil': typeof ProfilRoute
   '/film/$id': typeof FilmIdRoute
   '/films/$categorie': typeof FilmsCategorieRoute
+  '/user/$id': typeof UserIdRoute
   '/films/': typeof FilmsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/complete-username': typeof CompleteUsernameRoute
   '/discussion': typeof DiscussionRoute
   '/profil': typeof ProfilRoute
   '/film/$id': typeof FilmIdRoute
   '/films/$categorie': typeof FilmsCategorieRoute
+  '/user/$id': typeof UserIdRoute
   '/films': typeof FilmsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/complete-username': typeof CompleteUsernameRoute
   '/discussion': typeof DiscussionRoute
   '/profil': typeof ProfilRoute
   '/film/$id': typeof FilmIdRoute
   '/films/$categorie': typeof FilmsCategorieRoute
+  '/user/$id': typeof UserIdRoute
   '/films/': typeof FilmsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/complete-username'
     | '/discussion'
     | '/profil'
     | '/film/$id'
     | '/films/$categorie'
+    | '/user/$id'
     | '/films/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/complete-username'
     | '/discussion'
     | '/profil'
     | '/film/$id'
     | '/films/$categorie'
+    | '/user/$id'
     | '/films'
   id:
     | '__root__'
     | '/'
+    | '/complete-username'
     | '/discussion'
     | '/profil'
     | '/film/$id'
     | '/films/$categorie'
+    | '/user/$id'
     | '/films/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CompleteUsernameRoute: typeof CompleteUsernameRoute
   DiscussionRoute: typeof DiscussionRoute
   ProfilRoute: typeof ProfilRoute
   FilmIdRoute: typeof FilmIdRoute
   FilmsCategorieRoute: typeof FilmsCategorieRoute
+  UserIdRoute: typeof UserIdRoute
   FilmsIndexRoute: typeof FilmsIndexRoute
 }
 
@@ -124,6 +150,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DiscussionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/complete-username': {
+      id: '/complete-username'
+      path: '/complete-username'
+      fullPath: '/complete-username'
+      preLoaderRoute: typeof CompleteUsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -136,6 +169,13 @@ declare module '@tanstack/react-router' {
       path: '/films'
       fullPath: '/films/'
       preLoaderRoute: typeof FilmsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/user/$id': {
+      id: '/user/$id'
+      path: '/user/$id'
+      fullPath: '/user/$id'
+      preLoaderRoute: typeof UserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/films/$categorie': {
@@ -157,10 +197,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CompleteUsernameRoute: CompleteUsernameRoute,
   DiscussionRoute: DiscussionRoute,
   ProfilRoute: ProfilRoute,
   FilmIdRoute: FilmIdRoute,
   FilmsCategorieRoute: FilmsCategorieRoute,
+  UserIdRoute: UserIdRoute,
   FilmsIndexRoute: FilmsIndexRoute,
 }
 export const routeTree = rootRouteImport
