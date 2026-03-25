@@ -1,10 +1,29 @@
 import { Router, Request, Response } from 'express'
 import { db } from '../db/index.js'
 import { films, reviews, users } from '../db/schema.js'
-import { eq, and, desc } from 'drizzle-orm'
+import { and, desc, eq, sql } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 
 const router = Router()
+
+async function getFilmByImdbId(imdbId: string) {
+  const [film] = await db.select().from(films).where(eq(films.imdbId, imdbId))
+  return film
+}
+
+function parsePositiveInt(value: unknown): number | null {
+  const n = Number(value)
+  if (!Number.isFinite(n) || n <= 0) return null
+  return n
+}
+
+function parseRating10(value: unknown): number | null {
+  if (value == null) return null
+  const n = Number(value)
+  if (!Number.isFinite(n)) return null
+  if (n < 1 || n > 10) return null
+  return n
+}
 
 router.get('/me', requireAuth, async (req: Request, res: Response) => {
   const userId = (req as Request & { userId: number }).userId
@@ -27,7 +46,8 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
 })
 
 router.get('/film/:imdbId', async (req: Request, res: Response) => {
-  const [film] = await db.select().from(films).where(eq(films.imdbId, req.params.imdbId))
+  const imdbId = String(req.params.imdbId)
+  const film = await getFilmByImdbId(imdbId)
   if (!film) {
     res.json([])
     return
@@ -47,6 +67,67 @@ router.get('/film/:imdbId', async (req: Request, res: Response) => {
   res.json(list)
 })
 
+router.get('/film/:imdbId/summary', async (req: Request, res: Response) => {
+  const imdbId = String(req.params.imdbId)
+
+  const rows = await db
+    .select({
+      average: sql<number>`avg(${reviews.rating})`,
+      votes: sql<number>`count(${reviews.id})`,
+    })
+    .from(reviews)
+    .innerJoin(films, eq(reviews.filmId, films.id))
+    .where(eq(films.imdbId, imdbId))
+
+  const row = rows[0]
+  const votes = row ? Number(row.votes ?? 0) : 0
+  const average = row && row.average != null ? Number(row.average) : null
+
+  res.json({ average, votes })
+})
+
+router.get('/me/film/:imdbId', requireAuth, async (req: Request, res: Response) => {
+  const userId = (req as Request & { userId: number }).userId
+  const imdbId = String(req.params.imdbId)
+
+  const rows = await db
+    .select({ rating: reviews.rating })
+    .from(reviews)
+    .innerJoin(films, eq(reviews.filmId, films.id))
+    .where(and(eq(reviews.userId, userId), eq(films.imdbId, imdbId)))
+
+  res.json({ rating: rows[0]?.rating ?? null })
+})
+
+router.get('/user/:userId', async (req: Request, res: Response) => {
+  const userId = parsePositiveInt(req.params.userId)
+  if (!userId) {
+    res.status(400).json({ error: 'userId invalide' })
+    return
+  }
+  const limitRaw = Number(req.query.limit ?? 10)
+  const limit = Number.isFinite(limitRaw) ? Math.max(1, Math.min(30, limitRaw)) : 10
+
+  const list = await db
+    .select({
+      id: reviews.id,
+      rating: reviews.rating,
+      comment: reviews.comment,
+      createdAt: reviews.createdAt,
+      filmTitle: films.title,
+      filmPoster: films.poster,
+      filmImdbId: films.imdbId,
+      filmYear: films.year,
+    })
+    .from(reviews)
+    .innerJoin(films, eq(reviews.filmId, films.id))
+    .where(eq(reviews.userId, userId))
+    .orderBy(desc(reviews.createdAt))
+    .limit(limit)
+
+  res.json(list)
+})
+
 router.post('/', requireAuth, async (req: Request, res: Response) => {
   const userId = (req as Request & { userId: number }).userId
   const { imdbId, title, poster, year, rating, comment } = req.body
@@ -54,24 +135,23 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
     res.status(400).json({ error: 'imdbId et rating requis' })
     return
   }
-  const r = Number(rating)
-  if (r < 1 || r > 10) {
+  const r = parseRating10(rating)
+  if (r == null) {
     res.status(400).json({ error: 'rating entre 1 et 10' })
     return
   }
-  let [film] = await db.select().from(films).where(eq(films.imdbId, String(imdbId)))
+
+  let film = await getFilmByImdbId(String(imdbId))
   if (!film) {
-    const inserted = await db
-      .insert(films)
-      .values({
-        imdbId: String(imdbId),
-        title: title ? String(title) : 'Sans titre',
-        poster: poster ? String(poster) : null,
-        year: year ? String(year) : null,
-      })
-      .returning()
+    const inserted = await db.insert(films).values({
+      imdbId: String(imdbId),
+      title: title ? String(title) : 'Sans titre',
+      poster: poster ? String(poster) : null,
+      year: year ? String(year) : null,
+    }).returning()
     film = inserted[0]
   }
+
   const existing = await db
     .select()
     .from(reviews)
