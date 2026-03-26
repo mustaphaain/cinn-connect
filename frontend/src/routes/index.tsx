@@ -50,7 +50,7 @@ const features = [
 function HomePage() {
   return (
     <div className="space-y-6 pb-4 sm:space-y-8 sm:pb-6">
-      <section className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-8 dark:border-zinc-800 dark:bg-zinc-900">
+      <section className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white/70 p-4 shadow-sm backdrop-blur-md sm:p-8 dark:border-zinc-800 dark:bg-zinc-900/55">
         <div className="pointer-events-none absolute -right-28 -top-28 h-72 w-72 rounded-full bg-gradient-to-br from-indigo-500/25 to-fuchsia-500/25 blur-2xl" />
         <div className="pointer-events-none absolute -bottom-28 -left-28 h-72 w-72 rounded-full bg-gradient-to-br from-amber-400/20 to-rose-500/20 blur-2xl" />
 
@@ -59,10 +59,7 @@ function HomePage() {
             Bienvenue sur CinéConnect
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-900 sm:text-4xl dark:text-zinc-50">
-            Découvre des films,{' '}
-            <span className="bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-fuchsia-400">
-              note
-            </span>{' '}
+            Découvre des films, note
             et discute avec tes amis.
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
@@ -73,13 +70,13 @@ function HomePage() {
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
             <Link
               to="/films"
-              className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm ring-1 ring-black/5 transition hover:from-indigo-500 hover:to-fuchsia-500 dark:ring-white/10"
+              className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-white/70 px-5 py-2.5 text-sm font-medium text-zinc-900 transition hover:bg-white/90 dark:border-zinc-700 dark:bg-zinc-900/55 dark:text-zinc-50 dark:hover:bg-zinc-900/80"
             >
               Explorer les films
             </Link>
             <Link
               to="/discussion"
-              className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-white px-5 py-2.5 text-sm font-medium text-zinc-900 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-zinc-800"
+              className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-white/70 px-5 py-2.5 text-sm font-medium text-zinc-900 transition hover:bg-white/90 dark:border-zinc-700 dark:bg-zinc-900/55 dark:text-zinc-50 dark:hover:bg-zinc-900/80"
             >
               Voir la discussion
             </Link>
@@ -91,7 +88,7 @@ function HomePage() {
         {features.map((f) => (
           <div
             key={f.title}
-            className="group relative flex flex-col rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:border-indigo-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/80 dark:hover:border-indigo-900/50"
+            className="group relative flex flex-col rounded-2xl border border-zinc-200 bg-white/70 p-5 shadow-sm backdrop-blur-md transition hover:border-indigo-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/55 dark:hover:border-indigo-900/50"
           >
             <div className="mb-3 inline-flex rounded-xl bg-indigo-50 p-2.5 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-300">
               {f.icon}
@@ -108,7 +105,7 @@ function HomePage() {
         ))}
       </section>
 
-      <section className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-zinc-50 via-white to-indigo-50/40 p-4 shadow-sm dark:border-zinc-800 dark:from-zinc-900 dark:via-zinc-900 dark:to-indigo-950/30 sm:p-8">
+      <section className="rounded-2xl border border-zinc-200 bg-white/70 p-4 shadow-sm backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/55 sm:p-8">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Par où commencer ?</h2>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
           Saute dans une catégorie ou ouvre la liste complète pour chercher par titre.
@@ -121,7 +118,7 @@ function HomePage() {
               params={{ categorie: c.slug }}
               className="inline-flex items-center rounded-full border border-zinc-200 bg-white/90 px-4 py-2 text-sm font-medium text-zinc-800 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow dark:border-zinc-700 dark:bg-zinc-950/80 dark:text-zinc-100"
             >
-              <span className={`bg-gradient-to-r ${c.accent} bg-clip-text text-transparent`}>{c.label}</span>
+              <span className={`text-white ${c.accent} bg-clip-text text-transparent`}>{c.label}</span>
             </Link>
           ))}
           <Link
@@ -133,7 +130,7 @@ function HomePage() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-900 px-4 py-8 text-center text-zinc-50 shadow-sm dark:border-zinc-700/80 dark:bg-gradient-to-br dark:from-zinc-900 dark:to-zinc-950 sm:px-6 sm:py-10">
+      <section className="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-900/80 px-4 py-8 text-center text-zinc-50 shadow-sm backdrop-blur-md dark:border-zinc-700/80 dark:bg-zinc-950/50 sm:px-6 sm:py-10">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(99,102,241,0.35),transparent)]" />
         <div className="relative mx-auto max-w-lg space-y-3">
           <h2 className="text-xl font-semibold tracking-tight">Prêt·e à lancer une séance ?</h2>

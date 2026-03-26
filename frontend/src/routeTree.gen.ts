@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ReglagesRouteImport } from './routes/reglages'
 import { Route as ProfilRouteImport } from './routes/profil'
 import { Route as DiscussionRouteImport } from './routes/discussion'
 import { Route as CompleteUsernameRouteImport } from './routes/complete-username'
@@ -18,6 +19,11 @@ import { Route as UserIdRouteImport } from './routes/user/$id'
 import { Route as FilmsCategorieRouteImport } from './routes/films/$categorie'
 import { Route as FilmIdRouteImport } from './routes/film/$id'
 
+const ReglagesRoute = ReglagesRouteImport.update({
+  id: '/reglages',
+  path: '/reglages',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfilRoute = ProfilRouteImport.update({
   id: '/profil',
   path: '/profil',
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/complete-username': typeof CompleteUsernameRoute
   '/discussion': typeof DiscussionRoute
   '/profil': typeof ProfilRoute
+  '/reglages': typeof ReglagesRoute
   '/film/$id': typeof FilmIdRoute
   '/films/$categorie': typeof FilmsCategorieRoute
   '/user/$id': typeof UserIdRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/complete-username': typeof CompleteUsernameRoute
   '/discussion': typeof DiscussionRoute
   '/profil': typeof ProfilRoute
+  '/reglages': typeof ReglagesRoute
   '/film/$id': typeof FilmIdRoute
   '/films/$categorie': typeof FilmsCategorieRoute
   '/user/$id': typeof UserIdRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/complete-username': typeof CompleteUsernameRoute
   '/discussion': typeof DiscussionRoute
   '/profil': typeof ProfilRoute
+  '/reglages': typeof ReglagesRoute
   '/film/$id': typeof FilmIdRoute
   '/films/$categorie': typeof FilmsCategorieRoute
   '/user/$id': typeof UserIdRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/complete-username'
     | '/discussion'
     | '/profil'
+    | '/reglages'
     | '/film/$id'
     | '/films/$categorie'
     | '/user/$id'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/complete-username'
     | '/discussion'
     | '/profil'
+    | '/reglages'
     | '/film/$id'
     | '/films/$categorie'
     | '/user/$id'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/complete-username'
     | '/discussion'
     | '/profil'
+    | '/reglages'
     | '/film/$id'
     | '/films/$categorie'
     | '/user/$id'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   CompleteUsernameRoute: typeof CompleteUsernameRoute
   DiscussionRoute: typeof DiscussionRoute
   ProfilRoute: typeof ProfilRoute
+  ReglagesRoute: typeof ReglagesRoute
   FilmIdRoute: typeof FilmIdRoute
   FilmsCategorieRoute: typeof FilmsCategorieRoute
   UserIdRoute: typeof UserIdRoute
@@ -136,6 +149,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reglages': {
+      id: '/reglages'
+      path: '/reglages'
+      fullPath: '/reglages'
+      preLoaderRoute: typeof ReglagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profil': {
       id: '/profil'
       path: '/profil'
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   CompleteUsernameRoute: CompleteUsernameRoute,
   DiscussionRoute: DiscussionRoute,
   ProfilRoute: ProfilRoute,
+  ReglagesRoute: ReglagesRoute,
   FilmIdRoute: FilmIdRoute,
   FilmsCategorieRoute: FilmsCategorieRoute,
   UserIdRoute: UserIdRoute,

@@ -1,3 +1,5 @@
+import { getBestPosterUrl } from './poster'
+
 export type OmdbSearchMovie = {
   Title: string
   Year: string
@@ -74,15 +76,35 @@ export async function searchMovies(query: string, page = 1) {
     page: String(page),
   })
   if (data.Response === 'False') {
-    throw new Error(data.Error?.trim() || 'Aucun résultat OMDb pour cette recherche.')
+    const message = data.Error?.trim() || 'Aucun résultat OMDb pour cette recherche.'
+    // OMDb peut parfois renvoyer False sur des pages de pagination avancée
+    // alors que les premières pages existent. On stoppe la pagination sans casser l'UI.
+    if (page > 1 && /not found|incorrect|too many results/i.test(message)) {
+      return {
+        Search: [],
+        totalResults: '0',
+        Response: 'True',
+      } as OmdbSearchResponse
+    }
+    throw new Error(message)
+  }
+  if (Array.isArray(data.Search)) {
+    data.Search = data.Search.map((movie) => ({
+      ...movie,
+      Poster: getBestPosterUrl(movie.Poster, 'card') ?? movie.Poster,
+    }))
   }
   return data
 }
 
-export function getMovieById(imdbId: string) {
-  return omdbFetch<OmdbMovieDetails>({
+export async function getMovieById(imdbId: string) {
+  const data = await omdbFetch<OmdbMovieDetails>({
     i: imdbId,
     plot: 'full',
   })
+  if (data.Response === 'True' && data.Poster) {
+    data.Poster = getBestPosterUrl(data.Poster, 'detail') ?? data.Poster
+  }
+  return data
 }
 

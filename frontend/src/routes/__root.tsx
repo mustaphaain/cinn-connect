@@ -1,6 +1,8 @@
-import { Link, Outlet, createRootRouteWithContext } from '@tanstack/react-router'
+import { Link, Outlet, createRootRouteWithContext, useRouterState } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
 import { Navbar } from '../components/Navbar'
+import DarkVeil from '../components/DarkVeil'
+import { useTheme } from '../contexts/ThemeContext'
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
@@ -10,13 +12,40 @@ export const Route = createRootRouteWithContext<{
 })
 
 function RootComponent() {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const showDarkVeil = pathname === '/'
+
   return (
-    <div className="flex min-h-dvh flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
-      <Navbar />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+    <div
+      className={`relative isolate flex min-h-dvh flex-col text-zinc-900 dark:text-zinc-50 ${
+        showDarkVeil ? 'bg-transparent' : 'bg-zinc-50 dark:bg-zinc-950'
+      }`}
+    >
+      {showDarkVeil ? (
+        <div className="pointer-events-none fixed inset-0 z-0">
+          <DarkVeil
+            hueShift={isDark ? 0 : 200}
+            noiseIntensity={isDark ? 0.07 : 0.04}
+            scanlineIntensity={isDark ? 0.3 : 0.2}
+            speed={0.4}
+            scanlineFrequency={0}
+            warpAmount={isDark ? 0.15 : 0.08}
+            resolutionScale={1.25}
+          />
+          <div className={isDark ? 'absolute inset-0 bg-black/35' : 'absolute inset-0 bg-white/55'} />
+        </div>
+      ) : null}
+
+      <div className="relative z-20">
+        <Navbar />
+      </div>
+      <main className="relative z-20 mx-auto w-full max-w-6xl flex-1 px-4 py-8">
         <Outlet />
       </main>
-      <footer className="border-t border-zinc-200/80 py-6 text-center text-xs text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
+      <footer className="relative z-20 border-t border-zinc-200/80 py-6 text-center text-xs text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
         CinéConnect · plateforme cinéphile · HETIC Web2
       </footer>
     </div>

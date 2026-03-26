@@ -4,10 +4,15 @@ import { useState } from 'react'
 import { getMovieById } from '../../lib/omdb'
 import { api } from '../../lib/api'
 import { useAuth } from '../../contexts/AuthContext'
+import { getBestPosterUrl } from '../../lib/poster'
 
 export const Route = createFileRoute('/film/$id')({
   component: FilmDetailsPage,
 })
+
+function cx(...values: Array<string | false | null | undefined>) {
+  return values.filter(Boolean).join(' ')
+}
 
 function Stars({
   value,
@@ -93,12 +98,41 @@ function FilmDetailsPage() {
     enabled: !!user && !!id,
   })
 
+  const favoriteQuery = useQuery({
+    queryKey: ['favorites', 'is', id],
+    queryFn: () => api.favorites.isFavorite(id),
+    enabled: !!user && !!id,
+  })
+
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async () => {
+      const isFav = favoriteQuery.data?.favorite ?? false
+      if (isFav) {
+        await api.favorites.remove(id)
+        return { favorite: false as const }
+      }
+      await api.favorites.add({
+        imdbId: id,
+        title: query.data?.Title ?? 'Sans titre',
+        poster: getBestPosterUrl(query.data?.Poster, 'card') ?? null,
+        year: query.data?.Year ?? null,
+      })
+      return { favorite: true as const }
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['favorites', 'is', id] }),
+        queryClient.invalidateQueries({ queryKey: ['favorites', 'list'] }),
+      ])
+    },
+  })
+
   const rateMutation = useMutation({
     mutationFn: (rating: number) =>
       api.reviews.rateFilm({
         imdbId: id,
         title: query.data?.Title ?? 'Sans titre',
-        poster: query.data?.Poster ?? null,
+        poster: getBestPosterUrl(query.data?.Poster, 'card') ?? null,
         year: query.data?.Year ?? null,
         rating,
         comment: null,
@@ -122,14 +156,38 @@ function FilmDetailsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <Link
-          to="/films"
-          className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
-        >
-          ← Films
-        </Link>
-      </div>
+      <section className="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/70 p-4 shadow-sm backdrop-blur-md dark:border-zinc-800/70 dark:bg-zinc-900/55 sm:p-5">
+        <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-gradient-to-br from-indigo-500/20 to-fuchsia-500/20 blur-2xl" />
+        <div className="relative flex items-center justify-between gap-3">
+          <Link
+            to="/films"
+            className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white/70 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-white/90 dark:border-zinc-700 dark:bg-zinc-950/60 dark:text-zinc-50 dark:hover:bg-zinc-950/80"
+          >
+            ← Films
+          </Link>
+
+          {user ? (
+            <button
+              type="button"
+              onClick={() => toggleFavoriteMutation.mutate()}
+              disabled={toggleFavoriteMutation.isPending || query.isLoading || !id}
+              className={cx(
+                'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-60',
+                favoriteQuery.data?.favorite
+                  ? 'bg-gradient-to-r from-rose-600 to-fuchsia-600 text-white ring-black/5 hover:from-rose-500 hover:to-fuchsia-500 dark:ring-white/10'
+                  : 'border border-zinc-200 bg-white/70 text-zinc-900 hover:bg-white/90 dark:border-zinc-700 dark:bg-zinc-950/60 dark:text-zinc-50 dark:hover:bg-zinc-950/80'
+              )}
+              aria-label="Favori"
+              title="Favori"
+            >
+              <span className="text-base leading-none">{favoriteQuery.data?.favorite ? '♥' : '♡'}</span>
+              <span className="hidden sm:inline">
+                {favoriteQuery.data?.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+              </span>
+            </button>
+          ) : null}
+        </div>
+      </section>
 
       {query.isLoading && <div className="text-sm text-zinc-600 dark:text-zinc-300">Chargement…</div>}
 
@@ -140,11 +198,16 @@ function FilmDetailsPage() {
       )}
 
       {movie && (
-        <section className="relative grid gap-6 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 md:grid-cols-[280px_1fr]">
-          <div className="pointer-events-none absolute -right-28 -top-28 h-72 w-72 rounded-full bg-gradient-to-br from-indigo-500/15 to-fuchsia-500/15 blur-2xl" />
+        <section className="relative grid gap-6 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/70 p-6 shadow-sm backdrop-blur-md dark:border-zinc-800/70 dark:bg-zinc-900/55 md:grid-cols-[280px_1fr]">
+          <div className="pointer-events-none absolute -right-28 -top-28 h-72 w-72 rounded-full bg-gradient-to-br from-indigo-500/20 to-fuchsia-500/20 blur-2xl" />
+          <div className="pointer-events-none absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-gradient-to-br from-amber-500/10 to-rose-500/10 blur-2xl" />
           <div className="overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
             {movie.Poster && movie.Poster !== 'N/A' ? (
-              <img src={movie.Poster} alt={movie.Title} className="h-full w-full object-cover" />
+              <img
+                src={getBestPosterUrl(movie.Poster, 'detail') ?? movie.Poster}
+                alt={movie.Title}
+                className="h-full w-full object-cover"
+              />
             ) : (
               <div className="flex aspect-[2/3] items-center justify-center text-xs text-zinc-500 dark:text-zinc-400">
                 Pas d’affiche
@@ -152,7 +215,7 @@ function FilmDetailsPage() {
             )}
           </div>
 
-          <div className="space-y-3">
+            <div className="space-y-4">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
                 {movie.Title}
@@ -166,7 +229,7 @@ function FilmDetailsPage() {
 
             {movie.Plot && <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">{movie.Plot}</p>}
 
-            <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-sm dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="rounded-xl border border-zinc-200/80 bg-white/75 p-4 text-sm shadow-sm backdrop-blur dark:border-zinc-800/70 dark:bg-zinc-950/40">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-zinc-700 dark:text-zinc-200">
@@ -210,7 +273,7 @@ function FilmDetailsPage() {
               </div>
             </div>
 
-            <dl className="grid gap-3 rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-sm dark:border-zinc-800 dark:bg-zinc-950">
+            <dl className="grid gap-3 rounded-xl border border-zinc-200/80 bg-white/75 p-4 text-sm shadow-sm backdrop-blur dark:border-zinc-800/70 dark:bg-zinc-950/40">
               {movie.Director && (
                 <div className="grid grid-cols-[120px_1fr] gap-3">
                   <dt className="text-zinc-600 dark:text-zinc-400">Réalisateur</dt>

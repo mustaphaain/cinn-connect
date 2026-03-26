@@ -32,6 +32,14 @@ export type FilmRatingSummary = {
   average: number | null
   votes: number
 }
+
+export type FavoriteFilm = {
+  imdbId: string
+  title: string
+  poster: string | null
+  year: string | null
+  createdAt: string
+}
 export type ChatMessage = {
   id: number
   content: string
@@ -120,6 +128,13 @@ export const api = {
   messages: {
     list: () => request<ChatMessage[]>('/messages'),
     listPrivate: (friendId: number) => request<ChatMessage[]>('/messages/private/' + friendId),
+  },
+  favorites: {
+    list: () => request<FavoriteFilm[]>('/favorites'),
+    isFavorite: (imdbId: string) => request<{ favorite: boolean }>('/favorites/' + imdbId),
+    add: (body: { imdbId: string; title: string; poster: string | null; year: string | null }) =>
+      request<{ ok: true }>('/favorites', { method: 'POST', json: body }),
+    remove: (imdbId: string) => request<{ ok: true }>('/favorites/' + imdbId, { method: 'DELETE' }),
   },
 }
 

@@ -1,7 +1,11 @@
 import { Link, useRouterState } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { Bell, Settings } from 'lucide-react'
+import { createPortal } from 'react-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
+import { api } from '../lib/api'
 import { avatarIdToSrc } from '../lib/avatars'
 import PillNav from './PillNav'
 
@@ -10,56 +14,6 @@ const linkBase =
 
 const linkActive =
   'bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white hover:from-indigo-600 hover:to-fuchsia-600 dark:from-indigo-500 dark:to-fuchsia-500'
-
-function LogoutModal({ open, onCancel, onConfirm }: { open: boolean; onCancel: () => void; onConfirm: () => void }) {
-  const cancelRef = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    if (open) cancelRef.current?.focus()
-  }, [open])
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel()
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [open, onCancel])
-
-  if (!open) return null
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onCancel} />
-      <div className="relative w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-700 dark:bg-zinc-900">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-          Déconnexion
-        </h2>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-          Es-tu sûr de vouloir te déconnecter ?
-        </p>
-        <div className="mt-5 flex justify-end gap-3">
-          <button
-            ref={cancelRef}
-            type="button"
-            onClick={onCancel}
-            className="rounded-md border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-          >
-            Annuler
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-          >
-            Se déconnecter
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme()
@@ -90,10 +44,13 @@ function ThemeToggle() {
 }
 
 export function Navbar() {
-  const { user, logout, loading } = useAuth()
-  const [showLogout, setShowLogout] = useState(false)
+  const { user, loading } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
   const activeHref = useRouterState({ select: (s) => s.location.pathname })
+  const [notifOpen, setNotifOpen] = useState(false)
+  const notifPanelRef = useRef<HTMLDivElement>(null)
+  const notifButtonRef = useRef<HTMLButtonElement>(null)
+  const [notifPos, setNotifPos] = useState<{ top: number; left: number } | null>(null)
 
   const navItems = [
     { label: 'Accueil', href: '/' },
@@ -102,9 +59,59 @@ export function Navbar() {
     { label: 'Profil', href: '/profil' },
   ]
 
+  const { data: friendsData } = useQuery({
+    queryKey: ['friends', 'list'],
+    queryFn: () => api.friends.list(),
+    enabled: !!user,
+    staleTime: 10_000,
+    refetchInterval: 30_000,
+  })
+
+  const pendingCount = friendsData?.pendingReceived?.length ?? 0
+
+  const updateNotifPos = () => {
+    const btn = notifButtonRef.current
+    if (!btn) return
+    const rect = btn.getBoundingClientRect()
+    const width = 320 // tailwind w-80
+    const margin = 12
+    const left = Math.max(margin, Math.min(window.innerWidth - margin - width, rect.right - width))
+    const top = Math.min(window.innerHeight - margin, rect.bottom + 8)
+    setNotifPos({ top, left })
+  }
+
+  useEffect(() => {
+    if (!notifOpen) return
+    updateNotifPos()
+
+    const onPointerDown = (e: MouseEvent) => {
+      const el = notifPanelRef.current
+      if (!el) return
+      if (!(e.target instanceof Node)) return
+      if (!el.contains(e.target)) setNotifOpen(false)
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setNotifOpen(false)
+    }
+    const onScrollOrResize = () => updateNotifPos()
+    document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    window.addEventListener('resize', onScrollOrResize)
+    window.addEventListener('scroll', onScrollOrResize, { passive: true })
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('resize', onScrollOrResize)
+      window.removeEventListener('scroll', onScrollOrResize)
+    }
+  }, [notifOpen])
+
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/75">
+      <header
+        className="sticky top-0 z-[99999] border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/75"
+        style={{ zIndex: 99999 }}
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <Link to="/" className="group inline-flex items-center gap-2">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-fuchsia-600 text-sm font-bold text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10">
@@ -130,21 +137,105 @@ export function Navbar() {
               <span className="ml-1 flex items-center gap-2 sm:ml-2">
                 {user ? (
                   <>
-                    <img
-                      src={avatarIdToSrc(user.avatarUrl)}
-                      alt={user.username}
-                      className="h-7 w-7 rounded-full border border-zinc-200 dark:border-zinc-700"
-                    />
+                    <div className="relative" ref={notifPanelRef}>
+                      <button
+                        ref={notifButtonRef}
+                        type="button"
+                        onClick={() => setNotifOpen((v) => !v)}
+                        className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                        aria-label="Notifications"
+                        title="Notifications"
+                      >
+                        <Bell className="h-4 w-4" />
+                        {pendingCount > 0 ? (
+                          <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-1 text-[10px] font-semibold text-white shadow ring-1 ring-black/5 dark:ring-white/10">
+                            {pendingCount > 9 ? '9+' : pendingCount}
+                          </span>
+                        ) : null}
+                      </button>
+                    </div>
+
+                    {notifOpen && notifPos
+                      ? createPortal(
+                          <div
+                            className="fixed z-[2147483647] w-80 overflow-hidden rounded-2xl border border-zinc-200 bg-white/95 shadow-xl backdrop-blur-md dark:border-zinc-700 dark:bg-zinc-950/90"
+                            style={{ top: notifPos.top, left: notifPos.left }}
+                            role="dialog"
+                            aria-label="Notifications"
+                          >
+                            <div className="flex items-center justify-between gap-3 px-4 py-3">
+                              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Notifications</p>
+                              <Link
+                                to="/profil"
+                                search={{ tab: undefined }}
+                                className="inline-flex items-center gap-2 rounded-md px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/40"
+                                onClick={() => setNotifOpen(false)}
+                              >
+                                Ouvrir profil
+                              </Link>
+                            </div>
+                            <div className="border-t border-zinc-200/80 dark:border-zinc-800/80" />
+                            {pendingCount === 0 ? (
+                              <p className="px-4 py-4 text-sm text-zinc-600 dark:text-zinc-300">
+                                Rien de nouveau pour l’instant.
+                              </p>
+                            ) : (
+                              <div className="max-h-72 overflow-auto">
+                                {friendsData?.pendingReceived?.slice(0, 6).map((p) => (
+                                  <div
+                                    key={p.userId}
+                                    className="flex items-start justify-between gap-3 px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/50"
+                                  >
+                                    <div className="min-w-0">
+                                      <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                                        {p.username}
+                                      </p>
+                                      <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                        Demande d’ami reçue
+                                      </p>
+                                    </div>
+                                    <Link
+                                      to="/profil"
+                                      search={{ tab: undefined }}
+                                      className="shrink-0 rounded-md border border-zinc-200 px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                                      onClick={() => setNotifOpen(false)}
+                                    >
+                                      Voir
+                                    </Link>
+                                  </div>
+                                ))}
+                                {pendingCount > 6 ? (
+                                  <p className="px-4 pb-4 text-xs text-zinc-500 dark:text-zinc-400">
+                                    +{pendingCount - 6} autres demandes
+                                  </p>
+                                ) : null}
+                              </div>
+                            )}
+                          </div>,
+                          document.body
+                        )
+                      : null}
+
+                    <Link
+                      // Route type union can lag behind file-based generation in-editor; keep runtime path stable.
+                      to={'/reglages' as any}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                      aria-label="Paramètres"
+                      title="Paramètres"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Link>
+
+                    <Link to="/profil" search={{ tab: undefined }} aria-label="Ouvrir mon profil" title="Mon profil">
+                      <img
+                        src={avatarIdToSrc(user.avatarUrl)}
+                        alt={user.username}
+                        className="h-7 w-7 rounded-full border border-zinc-200 transition hover:opacity-90 dark:border-zinc-700"
+                      />
+                    </Link>
                     <span className="max-w-[8rem] truncate text-sm text-zinc-600 dark:text-zinc-300">
                       {user.username}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => setShowLogout(true)}
-                      className="rounded-md px-2 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900 dark:hover:bg-zinc-700 dark:hover:text-zinc-100"
-                    >
-                      Déconnexion
-                    </button>
                   </>
                 ) : null}
               </span>
@@ -201,6 +292,7 @@ export function Navbar() {
               </Link>
               <Link
                 to="/profil"
+                search={{ tab: undefined }}
                 className={linkBase}
                 activeProps={{ className: linkBase + ' ' + linkActive }}
                 onClick={() => setMobileOpen(false)}
@@ -219,27 +311,19 @@ export function Navbar() {
                   />
                   <span className="truncate text-sm text-zinc-700 dark:text-zinc-200">{user.username}</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileOpen(false)
-                    setShowLogout(true)
-                  }}
-                  className="rounded-md px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                <Link
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  to={'/reglages' as any}
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-md px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/40"
                 >
-                  Déconnexion
-                </button>
+                  Paramètres
+                </Link>
               </div>
             ) : null}
           </div>
         ) : null}
       </header>
-
-      <LogoutModal
-        open={showLogout}
-        onCancel={() => setShowLogout(false)}
-        onConfirm={() => { setShowLogout(false); logout() }}
-      />
     </>
   )
 }
