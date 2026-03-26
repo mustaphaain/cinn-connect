@@ -81,3 +81,61 @@ Commandes (à lancer depuis `backend/`) :
 
 ## Reste à faire (optionnel)
 - Option UX : fermer le menu mobile quand on clique en dehors (pas encore implémenté).
+
+## Journal des évolutions récentes
+
+### UI/UX (profil, header, films, discussion)
+- Refonte complète de `/profil` (style HUD/RPG, glass panels, progression XP, cartes et sections modernisées).
+- Refonte de `/user/:id` dans le même style visuel, en lecture publique (sans actions privées), avec gestion d’état d’amitié.
+- Refonte du `Navbar` :
+  - avatar cliquable vers `/profil`
+  - notifications (badge demandes d’amis)
+  - bouton déconnexion retiré du header
+  - bouton réglages vers une vraie page dédiée
+- Création de `/reglages` (apparence, notifications, raccourcis, zone sensible/déconnexion).
+- Refonte visuelle de `/film/:id` et `/discussion` pour aligner la D.A. avec `/profil` (sans bloc de stats).
+- Page `/films` enrichie avec un carrousel OGL des sorties récentes, filtrage catégorie multi-sélection, et sections style plateforme de streaming.
+
+### Data films / seed
+- Ajout d’un seed backend `backend/src/fake_rating/seed_films.ts` pour peupler la table `films` via OMDb avec pagination, anti-doublons, insertion par chunks et tolérance quota.
+- Script package ajouté côté backend pour lancer ce seed plus facilement.
+
+## Problèmes rencontrés et corrections
+
+### 1) `Rendered more hooks than during the previous render`
+- **Contexte** : sur `/profil` et `/user/:id`.
+- **Cause** : hooks/valeurs calculées définis dans des branches conditionnelles.
+- **Fix** : remontée des hooks et calculs au niveau top du composant pour garantir un ordre d’exécution stable.
+
+### 2) Dropdown notifications invisible / derrière les autres éléments
+- **Contexte** : menu notifications du header non visible ou caché.
+- **Cause** : stacking context / z-index.
+- **Fix** : rendu du panel via `createPortal` + refs pour positionnement/fermeture.
+
+### 3) Erreurs TypeScript sur routes TanStack (`/reglages`)
+- **Contexte** : `to="/reglages"` incompatible au typage de route.
+- **Cause** : route tree générée non synchronisée pendant l’ajout.
+- **Fix** : contournement temporaire sur le typage du `Link`, en gardant le path runtime correct.
+
+### 4) Erreur `search` manquant sur les liens `/profil`
+- **Contexte** : après ajout de `validateSearch` sur la route profil.
+- **Cause** : liens vers `/profil` sans objet `search`.
+- **Fix** : ajout explicite de `search={{ tab: undefined }}` (ou équivalent) sur les liens concernés.
+
+### 5) Crash films `Cannot read properties of undefined (reading 'length')`
+- **Contexte** : clic “Voir tout” sur `/films/$categorie`, bug récurrent nécessitant refresh.
+- **Cause** : pagination OMDb instable + hypothèses trop optimistes dans `useInfiniteQuery/getNextPageParam`.
+- **Fix final** :
+  - durcissement de `searchMovies` (OMDb `Response=False` sur pages avancées traité comme fin de pagination)
+  - migration de `/films/$categorie` vers `useQueries` + pagination manuelle (`pagesToLoad`)
+  - gardes défensives supplémentaires sur `/films`.
+
+### 6) Lenteurs fortes de chargement images
+- **Contexte** : posters très longs à charger.
+- **Cause** : forcing global en haute définition.
+- **Fix** : stratégie de qualité adaptive (`thumb`, `card`, `gallery`, `detail`) appliquée selon le contexte d’affichage.
+
+## Notes techniques utiles
+- Les affiches invalides (`N/A`, liens cassés) sont filtrées côté UI pour éviter des cartes vides.
+- Le carrousel des sorties récentes se masque/animé lors du focus sur la recherche pour améliorer la lisibilité.
+- La page catégorie films utilise désormais une pagination explicite, plus robuste sur API imprévisible.

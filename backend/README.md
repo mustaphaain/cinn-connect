@@ -114,7 +114,27 @@ Dans **Google Cloud Console** > **API et services** :
 - `pnpm db:migrate` — applique les migrations
 - Seeds démo (avis bots) :
   - `pnpm exec tsx src/fake_rating/seed_all.ts` : OMDb → `films`, puis bots → `reviews`
+  - `pnpm run seed:films` : seed films OMDb étendu (pagination multi-queries, anti-doublons)
   - `pnpm exec tsx src/fake_rating/seed_friends_matheo91.ts` : ajoute des amis pour tester le chat privé
+
+## Mises à jour backend récentes
+
+- Ajout d’un seed films avancé : `src/fake_rating/seed_films.ts`
+  - récupère la clé OMDb depuis plusieurs sources (`backend/.env`, env process, fallback frontend)
+  - lance plusieurs requêtes de recherche OMDb, paginées
+  - dédoublonne sur `imdbId`
+  - insertion par lots avec `onConflictDoNothing`
+- Objectif : fournir un catalogue plus large et stable pour les pages films côté frontend.
+
+## Problèmes rencontrés et solutions (backend/API)
+
+### Catalogue partiel OMDb (trop peu de films)
+- **Cause** : ancien seed limité à page 1/catégorie.
+- **Fix** : `seed_films.ts` avec pagination multi-pages et multi-termes.
+
+### Erreurs pagination côté front dues aux réponses OMDb
+- **Cause** : OMDb peut renvoyer `Response=False` sur certaines pages avancées.
+- **Fix** : côté frontend, ces cas sont traités comme fin de pagination au lieu d’erreur fatale.
 
 ## Dépannage : "Failed to fetch" ou "Impossible de joindre le serveur"
 

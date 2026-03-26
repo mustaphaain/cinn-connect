@@ -25,10 +25,49 @@ Le backend authentifie avec un **JWT stocké dans un cookie `HttpOnly`**.
 ## Discussion
 - Affichage des avatars dans les messages.
 - Canal public + canaux privés entre amis dans `/discussion`.
+- Refonte visuelle de `/discussion` au style glass/HUD (même D.A. que `/profil`).
 
 ## Notes films (étoiles)
 - Sur la page `Film` (`/film/:id`), tu peux noter un film avec **5 étoiles** (affichage possible en **demi-étoile**).
 - Le backend stocke la note **1 à 10** ; l’UI la convertit automatiquement en **1 à 5**.
+- Refonte visuelle de `/film/:id` dans la même D.A. que `/profil` (sans section stats).
+
+## Films / Catalogue (mise à jour)
+
+- Refonte de `/films` :
+  - sections type streaming
+  - tri orienté “sorties récentes”
+  - filtres catégories multi-sélection
+  - carrousel OGL en haut de page pour les nouveautés
+- Animation du carrousel :
+  - glisse vers le haut et disparition fluide quand l’input recherche prend le focus
+  - retour fluide au blur
+- Route `/films/$categorie` stabilisée avec pagination manuelle.
+
+## Problèmes rencontrés et fixes (frontend)
+
+### `Rendered more hooks than during the previous render`
+- **Cause** : hooks exécutés dans des branches conditionnelles.
+- **Fix** : réorganisation des composants pour garder un ordre de hooks constant.
+
+### Notifications cachées derrière d’autres éléments
+- **Cause** : problème de z-index/stacking context.
+- **Fix** : rendu du panneau notifications dans un portal (`createPortal`).
+
+### Liens `/profil` cassés après `validateSearch`
+- **Cause** : le `search` devient requis par le typage de route.
+- **Fix** : ajout explicite de `search` sur les `Link` vers `/profil`.
+
+### Crash pagination films (`undefined.length`)
+- **Cause** : réponses OMDb irrégulières + logique de pagination fragile.
+- **Fix** :
+  - garde défensive dans la pagination
+  - normalisation des réponses OMDb “fin de pages”
+  - remplacement `useInfiniteQuery` par `useQueries` sur la vue catégorie.
+
+### Chargement images trop lent
+- **Cause** : posters forcés en très haute qualité partout.
+- **Fix** : qualité d’image adaptative selon contexte (`thumb` / `card` / `gallery` / `detail`) dans `src/lib/poster.ts`.
 
 ### Configuration
 
