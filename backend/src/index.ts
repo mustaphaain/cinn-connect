@@ -9,6 +9,7 @@ import userRoutes from './routes/users.js'
 import reviewRoutes from './routes/reviews.js'
 import friendRoutes from './routes/friends.js'
 import messageRoutes from './routes/messages.js'
+import favoriteRoutes from './routes/favorites.js'
 import { setupSocket } from './socket.js'
 import swaggerUi from 'swagger-ui-express'
 import { openApiSpec } from './swagger.js'
@@ -33,6 +34,7 @@ app.use('/users', userRoutes)
 app.use('/reviews', reviewRoutes)
 app.use('/friends', friendRoutes)
 app.use('/messages', messageRoutes)
+app.use('/favorites', favoriteRoutes)
 app.get('/health', (_req, res) => {
   res.json({
     ok: true,

@@ -40,6 +40,20 @@ export const reviews = pgTable('reviews', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
+export const favorites = pgTable(
+  'favorites',
+  {
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    filmId: integer('film_id')
+      .notNull()
+      .references(() => films.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.filmId] })]
+)
+
 export const friends = pgTable(
   'friends',
   {

@@ -10,7 +10,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "test:db": "node scripts/test-db.js",
-    "init:db": "node scripts/init-db.js"
+    "init:db": "node scripts/init-db.js",
+    "seed:films": "tsx src/fake_rating/seed_films.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
