@@ -6,6 +6,8 @@ import {
   timestamp,
   integer,
   primaryKey,
+  index,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
 export const users = pgTable('users', {
@@ -26,6 +28,19 @@ export const films = pgTable('films', {
   year: varchar('year', { length: 10 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
+
+// Genres OMDb normalisés (un film peut avoir plusieurs genres).
+// Ex: "Animation, Action, Adventure" => 3 lignes dans `film_genres`.
+export const filmGenres = pgTable(
+  'film_genres',
+  {
+    filmId: integer('film_id')
+      .notNull()
+      .references(() => films.id, { onDelete: 'cascade' }),
+    genre: varchar('genre', { length: 100 }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.filmId, t.genre] })]
+)
 
 export const reviews = pgTable('reviews', {
   id: serial('id').primaryKey(),
@@ -78,3 +93,53 @@ export const messages = pgTable('messages', {
   content: text('content').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
+
+/** Réponses détail OMDb mises en cache (clé unique : imdb_id). */
+export const omdbMovieCache = pgTable(
+  'omdb_movie_cache',
+  {
+    imdbId: varchar('imdb_id', { length: 20 }).primaryKey(),
+    title: varchar('title', { length: 512 }).notNull(),
+    year: varchar('year', { length: 32 }),
+    titleNorm: varchar('title_norm', { length: 512 }).notNull(),
+    rated: varchar('rated', { length: 32 }),
+    released: varchar('released', { length: 64 }),
+    runtime: varchar('runtime', { length: 64 }),
+    genre: text('genre'),
+    director: text('director'),
+    writer: text('writer'),
+    actors: text('actors'),
+    plot: text('plot'),
+    language: varchar('language', { length: 255 }),
+    country: varchar('country', { length: 255 }),
+    awards: text('awards'),
+    poster: varchar('poster', { length: 1024 }),
+    ratingsJson: text('ratings_json'),
+    metascore: varchar('metascore', { length: 16 }),
+    imdbRating: varchar('imdb_rating', { length: 16 }),
+    imdbVotes: varchar('imdb_votes', { length: 32 }),
+    type: varchar('type', { length: 32 }),
+    dvd: varchar('dvd', { length: 128 }),
+    boxOffice: varchar('box_office', { length: 128 }),
+    production: varchar('production', { length: 256 }),
+    website: varchar('website', { length: 512 }),
+    source: varchar('source', { length: 32 }).notNull().default('omdb'),
+    cachedAt: timestamp('cached_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => [index('omdb_movie_cache_title_norm_year_idx').on(t.titleNorm, t.year)]
+)
+
+/** Réponses de recherche OMDb (clé déterministe query + page + type). */
+export const omdbSearchCache = pgTable(
+  'omdb_search_cache',
+  {
+    id: serial('id').primaryKey(),
+    cacheKey: varchar('cache_key', { length: 256 }).notNull(),
+    payloadJson: text('payload_json').notNull(),
+    source: varchar('source', { length: 32 }).notNull().default('omdb'),
+    cachedAt: timestamp('cached_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex('omdb_search_cache_key_unique').on(t.cacheKey)]
+)
