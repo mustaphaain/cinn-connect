@@ -1,3 +1,5 @@
+import type { OmdbMovieDetails, OmdbSearchResponse } from './omdb'
+
 const BASE =
   (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ||
   'http://localhost:3001'
@@ -68,7 +70,7 @@ async function request<T>(path: string, options: RequestInit & { json?: unknown 
     let message = 'Erreur réseau'
 
     if (err instanceof TypeError && err.message === 'Failed to fetch') {
-      message = `Impossible de joindre le serveur (${BASE}). Vérifie que le backend tourne : pnpm -C backend dev. Et que frontend/.env contient VITE_API_URL=http://localhost:3001`
+      message = `Impossible de joindre le serveur (${BASE}). Vérifie que le backend tourne : pnpm -C backend dev. Si ton front est sur :5174, assure-toi que le backend autorise aussi cette origin (CORS).`
     } else if (err instanceof Error) {
       message = err.message
     }
@@ -135,6 +137,38 @@ export const api = {
     add: (body: { imdbId: string; title: string; poster: string | null; year: string | null }) =>
       request<{ ok: true }>('/favorites', { method: 'POST', json: body }),
     remove: (imdbId: string) => request<{ ok: true }>('/favorites/' + imdbId, { method: 'DELETE' }),
+  },
+
+  films: {
+    byGenres: (genres: string[], params?: { limit?: number; offset?: number }) =>
+      request<OmdbSearchResponse>(
+        '/films/by-genre?genres=' +
+          encodeURIComponent(genres.join(',')) +
+          '&limit=' +
+          encodeURIComponent(String(params?.limit ?? 10)) +
+          '&offset=' +
+          encodeURIComponent(String(params?.offset ?? 0))
+      ),
+  },
+
+  /** OMDb via backend (cache DB, clé API uniquement côté serveur). */
+  omdb: {
+    search: (query: string, page = 1) =>
+      request<OmdbSearchResponse>(
+        '/films/omdb/search?s=' +
+          encodeURIComponent(query) +
+          '&page=' +
+          encodeURIComponent(String(page)),
+      ),
+    movie: (imdbId: string) =>
+      request<OmdbMovieDetails>('/films/omdb/movie/' + encodeURIComponent(imdbId)),
+    movieByTitleYear: (title: string, year: string) =>
+      request<OmdbMovieDetails>(
+        '/films/omdb/by-title?title=' +
+          encodeURIComponent(title) +
+          '&year=' +
+          encodeURIComponent(year),
+      ),
   },
 }
 

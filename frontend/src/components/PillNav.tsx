@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { gsap } from 'gsap'
 import { useEffect, useRef, type CSSProperties } from 'react'
-import { useTheme } from '../contexts/ThemeContext'
+import { useTheme } from '../contexts/useTheme'
 
 export type PillNavItem = {
   label: string

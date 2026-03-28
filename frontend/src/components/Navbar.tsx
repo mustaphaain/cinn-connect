@@ -3,8 +3,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Bell, Settings } from 'lucide-react'
 import { createPortal } from 'react-dom'
-import { useAuth } from '../contexts/AuthContext'
-import { useTheme } from '../contexts/ThemeContext'
+import { useAuth } from '../contexts/useAuth'
+import { useTheme } from '../contexts/useTheme'
 import { api } from '../lib/api'
 import { avatarIdToSrc } from '../lib/avatars'
 import PillNav from './PillNav'
@@ -217,8 +217,7 @@ export function Navbar() {
                       : null}
 
                     <Link
-                      // Route type union can lag behind file-based generation in-editor; keep runtime path stable.
-                      to={'/reglages' as any}
+                      to="/reglages"
                       className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
                       aria-label="Paramètres"
                       title="Paramètres"
@@ -312,8 +311,7 @@ export function Navbar() {
                   <span className="truncate text-sm text-zinc-700 dark:text-zinc-200">{user.username}</span>
                 </div>
                 <Link
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  to={'/reglages' as any}
+                  to="/reglages"
                   onClick={() => setMobileOpen(false)}
                   className="rounded-md px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/40"
                 >
