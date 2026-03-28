@@ -1,20 +1,21 @@
 import type { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
+import { env } from '../config/env.js'
 
 export type JwtPayload = { userId: number }
 
-const secret = process.env.JWT_SECRET ?? 'dev-secret-change-en-prod'
-const cookieName = process.env.AUTH_COOKIE_NAME ?? 'cineconnect_auth'
+const secret = env.jwtSecret
+const cookieName = env.authCookieName
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
-  const token = (req as Request & { cookies?: Record<string, string | undefined> }).cookies?.[cookieName]
+  const token = req.cookies?.[cookieName]
   if (!token) {
     res.status(401).json({ error: 'Token manquant' })
     return
   }
   try {
     const decoded = jwt.verify(token, secret) as JwtPayload
-    ;(req as Request & { userId: number }).userId = decoded.userId
+    req.userId = decoded.userId
     next()
   } catch {
     res.status(401).json({ error: 'Token invalide ou expiré' })

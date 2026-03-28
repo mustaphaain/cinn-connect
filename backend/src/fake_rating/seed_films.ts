@@ -3,7 +3,8 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { db } from '../db/index.js'
-import { films } from '../db/schema.js'
+import { films, filmGenres } from '../db/schema.js'
+import { eq, isNull } from 'drizzle-orm'
 
 type OmdbSearchMovie = {
   Title: string
@@ -17,6 +18,12 @@ type OmdbSearchResponse = {
   Search?: OmdbSearchMovie[]
   totalResults?: string
   Response: 'True' | 'False'
+  Error?: string
+}
+
+type OmdbMovieDetails = {
+  Response: 'True' | 'False'
+  Genre?: string
   Error?: string
 }
 
@@ -53,7 +60,7 @@ function getOmdbKey(): string {
   if (keyFromFile) return keyFromFile
 
   throw new Error(
-    'OMDb key manquante. Mets OMDB_API_KEY dans backend/.env ou VITE_OMDB_API_KEY dans frontend/.env.'
+    'OMDb key manquante. Mets OMDB_API_KEY dans backend/.env (recommandé). En secours : VITE_OMDB_API_KEY dans frontend/.env pour les anciens setups.'
   )
 }
 
@@ -66,8 +73,32 @@ async function searchOmdb(query: string, page: number): Promise<OmdbSearchRespon
   url.searchParams.set('page', String(page))
 
   const res = await fetch(url.toString())
-  if (!res.ok) throw new Error(`OMDb HTTP ${res.status} (${query}, page ${page})`)
-  return (await res.json()) as OmdbSearchResponse
+  const data = (await res.json()) as OmdbSearchResponse
+  if (!res.ok) {
+    const msg = data?.Error ? String(data.Error) : `HTTP ${res.status}`
+    throw new Error(`OMDb ${msg} (${query}, page ${page})`)
+  }
+  if (data.Response === 'False') {
+    const msg = data.Error?.trim() || 'Erreur OMDb'
+    throw new Error(`OMDb ${msg} (${query}, page ${page})`)
+  }
+  return data
+}
+
+async function getOmdbDetails(imdbId: string): Promise<OmdbMovieDetails> {
+  const key = getOmdbKey()
+  const url = new URL('https://www.omdbapi.com/')
+  url.searchParams.set('apikey', key)
+  url.searchParams.set('i', imdbId)
+  url.searchParams.set('plot', 'short')
+
+  const res = await fetch(url.toString())
+  const data = (await res.json()) as OmdbMovieDetails
+  if (!res.ok) {
+    const msg = data?.Error ? String(data.Error) : `HTTP ${res.status}`
+    throw new Error(`OMDb ${msg} (details: ${imdbId})`)
+  }
+  return data
 }
 
 function normalizeYear(year: string): string | null {
@@ -82,47 +113,8 @@ function normalizePoster(poster: string): string | null {
   return p
 }
 
-function buildQueries(): string[] {
-  // Couverture large : alphanumerique + mots frequents cinema
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'.split('')
-  const keywords = [
-    'love',
-    'war',
-    'night',
-    'day',
-    'life',
-    'death',
-    'world',
-    'man',
-    'woman',
-    'family',
-    'city',
-    'house',
-    'road',
-    'star',
-    'dark',
-    'light',
-    'king',
-    'queen',
-    'last',
-    'first',
-    'new',
-    'old',
-    'action',
-    'drama',
-    'comedy',
-    'horror',
-    'thriller',
-    'romance',
-    'crime',
-    'adventure',
-    'fantasy',
-    'mystery',
-    'space',
-    'future',
-    'past',
-  ]
-  return [...chars, ...keywords]
+function isQuotaError(msg: string) {
+  return /request limit reached/i.test(msg)
 }
 
 function sleep(ms: number) {
@@ -130,9 +122,12 @@ function sleep(ms: number) {
 }
 
 async function run() {
-  const queries = buildQueries()
-  const maxPagesPerQuery = 10 // limite OMDb sur search
-  const delayMs = 140 // evite de saturer le quota API
+  // Seed minimal, cohérent avec le projet: on prend juste les grandes catégories.
+  // Si tu veux élargir sans exploser le quota, ajoute des mots ici.
+  const queries = ['action', 'drama', 'science fiction', 'comedy', 'horror']
+  const maxPagesPerQuery = Number(process.env.SEED_FILMS_MAX_PAGES ?? '1') // par défaut: page 1 seulement
+  const delayMs = Number(process.env.SEED_FILMS_DELAY_MS ?? '250')
+  const maxDetailsPerRun = Number(process.env.SEED_FILMS_MAX_DETAILS ?? '120')
 
   const existing = await db.select({ imdbId: films.imdbId }).from(films)
   const known = new Set(existing.map((r) => r.imdbId))
@@ -146,20 +141,21 @@ async function run() {
     }
   >()
 
-  console.log(`[seed_films] Start. Queries: ${queries.length}`)
+  console.log(`[seed_films] Start. Queries: ${queries.length} | pages/query: ${maxPagesPerQuery}`)
 
   for (const q of queries) {
-    let pagesToFetch = 1
-    for (let page = 1; page <= pagesToFetch && page <= maxPagesPerQuery; page++) {
-      const data = await searchOmdb(q, page)
-
-      if (data.Response === 'False') break
-
-      if (page === 1) {
-        const total = Number(data.totalResults ?? '0')
-        if (Number.isFinite(total) && total > 0) {
-          pagesToFetch = Math.min(maxPagesPerQuery, Math.ceil(total / 10))
+    for (let page = 1; page <= maxPagesPerQuery; page++) {
+      let data: OmdbSearchResponse
+      try {
+        data = await searchOmdb(q, page)
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        if (isQuotaError(msg)) {
+          console.error('[seed_films] Quota OMDb atteint. Stop search pour ce run.')
+          break
         }
+        console.warn('[seed_films] Search OMDb ignorée:', msg)
+        break
       }
 
       for (const m of data.Search ?? []) {
@@ -182,14 +178,71 @@ async function run() {
   const toInsert = Array.from(discovered.values())
   if (toInsert.length === 0) {
     console.log('[seed_films] Aucun nouveau film a inserer.')
-    return
+  } else {
+    console.log(`[seed_films] New movies found: ${toInsert.length}`)
+    const chunkSize = 500
+    for (let i = 0; i < toInsert.length; i += chunkSize) {
+      const chunk = toInsert.slice(i, i + chunkSize)
+      await db.insert(films).values(chunk).onConflictDoNothing({ target: films.imdbId })
+    }
   }
 
-  console.log(`[seed_films] New movies found: ${toInsert.length}`)
-  const chunkSize = 500
-  for (let i = 0; i < toInsert.length; i += chunkSize) {
-    const chunk = toInsert.slice(i, i + chunkSize)
-    await db.insert(films).values(chunk).onConflictDoNothing({ target: films.imdbId })
+  // Remplir/compléter les genres pour les films sans entrées dans film_genres
+  const missingGenresFilms = await db
+    .select({ filmId: films.id, imdbId: films.imdbId })
+    .from(films)
+    .leftJoin(filmGenres, eq(filmGenres.filmId, films.id))
+    .where(isNull(filmGenres.genre))
+
+  console.log(`[seed_films] Films sans genres: ${missingGenresFilms.length}`)
+  console.log(`[seed_films] Limite de details (par run): ${maxDetailsPerRun}`)
+
+  let detailsFetched = 0
+  for (const row of missingGenresFilms) {
+    if (detailsFetched >= maxDetailsPerRun) break
+
+    let details: OmdbMovieDetails
+    try {
+      details = await getOmdbDetails(row.imdbId)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      if (isQuotaError(msg)) {
+        console.error('[seed_films] Quota OMDb atteint sur details. Stop details pour ce run.')
+        break
+      }
+      console.warn('[seed_films] Details OMDb ignorés:', msg)
+      await sleep(delayMs)
+      continue
+    }
+
+    if (details.Response !== 'True') {
+      await sleep(delayMs)
+      continue
+    }
+    const genreStr = details.Genre?.trim()
+    if (!genreStr || genreStr === 'N/A') {
+      await sleep(delayMs)
+      continue
+    }
+
+    const genres = genreStr
+      .split(',')
+      .map((g) => g.trim())
+      .filter(Boolean)
+
+    if (!genres.length) {
+      await sleep(delayMs)
+      continue
+    }
+
+    await db
+      .insert(filmGenres)
+      .values(genres.map((g) => ({ filmId: row.filmId, genre: g })))
+      .onConflictDoNothing({ target: [filmGenres.filmId, filmGenres.genre] })
+
+    detailsFetched += 1
+
+    await sleep(delayMs)
   }
 
   console.log('[seed_films] Done.')

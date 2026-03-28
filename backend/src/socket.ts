@@ -4,9 +4,10 @@ import { and, eq, or } from 'drizzle-orm'
 import { db } from './db/index.js'
 import { friends, messages, users } from './db/schema.js'
 import type { JwtPayload } from './middleware/auth.js'
+import { env } from './config/env.js'
 
-const secret = process.env.JWT_SECRET ?? 'dev-secret-change-en-prod'
-const cookieName = process.env.AUTH_COOKIE_NAME ?? 'cineconnect_auth'
+const secret = env.jwtSecret
+const cookieName = env.authCookieName
 
 function getCookieValue(cookieHeader: string | undefined, key: string): string | null {
   if (!cookieHeader) return null
