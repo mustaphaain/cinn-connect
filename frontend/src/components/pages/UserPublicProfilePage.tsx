@@ -163,10 +163,10 @@ export function UserPublicProfilePage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center">
               <Link
                 to="/films"
-                className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white/70 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-white/90 dark:border-zinc-700 dark:bg-zinc-950/60 dark:text-zinc-50 dark:hover:bg-zinc-950/80"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white/70 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-white/90 dark:border-zinc-700 dark:bg-zinc-950/60 dark:text-zinc-50 dark:hover:bg-zinc-950/80 md:w-auto md:justify-start"
               >
                 <ChevronLeft className="h-4 w-4" />
                 Retour
@@ -176,7 +176,7 @@ export function UserPublicProfilePage() {
                   <button
                     type="button"
                     disabled
-                    className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white/60 px-4 py-2 text-sm font-semibold text-zinc-700 shadow-sm backdrop-blur-md opacity-80 dark:border-zinc-700 dark:bg-zinc-950/45 dark:text-zinc-200"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white/60 px-4 py-2 text-sm font-semibold text-zinc-700 shadow-sm backdrop-blur-md opacity-80 dark:border-zinc-700 dark:bg-zinc-950/45 dark:text-zinc-200 md:w-auto"
                     aria-disabled="true"
                     title="Vous êtes déjà amis"
                   >
@@ -187,7 +187,7 @@ export function UserPublicProfilePage() {
                   <button
                     type="button"
                     disabled
-                    className="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 opacity-90 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 opacity-90 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200 md:w-auto"
                     aria-disabled="true"
                     title="Demande déjà envoyée"
                   >
@@ -198,7 +198,7 @@ export function UserPublicProfilePage() {
                   <Link
                     to="/profil"
                     search={{ tab: 'friends' }}
-                    className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-black/5 transition hover:from-indigo-500 hover:to-fuchsia-500 dark:ring-white/10"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-black/5 transition hover:from-indigo-500 hover:to-fuchsia-500 dark:ring-white/10 md:w-auto"
                     title="Ouvrir les demandes d'amis"
                   >
                     <Users className="h-4 w-4" />
@@ -209,7 +209,7 @@ export function UserPublicProfilePage() {
                     type="button"
                     onClick={sendFriendRequest}
                     disabled={requesting}
-                    className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-black/5 transition hover:from-indigo-500 hover:to-fuchsia-500 disabled:opacity-50 dark:ring-white/10"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-black/5 transition hover:from-indigo-500 hover:to-fuchsia-500 disabled:opacity-50 dark:ring-white/10 md:w-auto"
                   >
                     <UserPlus className="h-4 w-4" />
                     Ajouter
@@ -219,7 +219,7 @@ export function UserPublicProfilePage() {
                 <Link
                   to="/profil"
                   search={{ tab: undefined }}
-                  className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-black/5 transition hover:from-indigo-500 hover:to-fuchsia-500 dark:ring-white/10"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-black/5 transition hover:from-indigo-500 hover:to-fuchsia-500 dark:ring-white/10 md:w-auto"
                 >
                   Ouvrir mon profil
                 </Link>

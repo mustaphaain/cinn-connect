@@ -185,13 +185,13 @@ export function FilmsIndexPage() {
     <div className="relative space-y-10">
       <section
         className={cx(
-          'relative left-1/2 w-screen -translate-x-1/2 overflow-hidden group rounded-none',
+          'relative overflow-hidden group rounded-2xl md:left-1/2 md:w-screen md:-translate-x-1/2 md:rounded-none',
           'transition-[max-height,opacity,transform,margin] duration-700 ease-in-out',
           isSearchFocused ? 'pointer-events-none -mt-6 max-h-0 -translate-y-24 opacity-0' : 'mt-0 max-h-[520px] opacity-100'
         )}
         aria-hidden={isSearchFocused}
       >
-        <div className="relative h-[420px] w-full overflow-hidden">
+        <div className="relative h-[320px] w-full overflow-hidden md:h-[420px]">
           {featured?.Poster ? (
             <img
               alt={featured.Title}
@@ -205,11 +205,11 @@ export function FilmsIndexPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-transparent to-transparent" />
 
-          <div className="absolute bottom-10 left-1/2 w-full max-w-6xl -translate-x-1/2 px-6 md:px-8">
+          <div className="absolute bottom-10 inset-x-0 px-4 md:inset-x-auto md:left-1/2 md:w-full md:max-w-6xl md:-translate-x-1/2 md:px-8">
             <span className="mb-3 block text-xs font-bold uppercase tracking-[0.2em] text-fuchsia-300">
               À la une cette semaine
             </span>
-            <h1 className="font-black tracking-tighter text-5xl leading-none text-zinc-50 sm:text-6xl">
+            <h1 className="font-black tracking-tighter text-3xl leading-none text-zinc-50 md:text-5xl lg:text-6xl">
               {featured?.Title ?? 'Catalogue'}
             </h1>
             <p className="mt-4 line-clamp-2 max-w-lg text-sm text-zinc-300">
@@ -245,7 +245,7 @@ export function FilmsIndexPage() {
         </div>
       </section>
 
-      <section className="-mt-14 relative z-10">
+      <section className="-mt-6 relative z-10 md:-mt-14">
         <div className="rounded-2xl border border-white/10 bg-zinc-950/45 p-6 shadow-2xl backdrop-blur-xl">
           <div className="flex flex-col gap-6 md:flex-row md:items-center">
             <div className="relative flex-1">
@@ -305,7 +305,7 @@ export function FilmsIndexPage() {
             {!isLoading && !errorMessage && searchItems.length === 0 ? (
               <div className="text-sm text-zinc-400">Aucun résultat avec affiche valide.</div>
             ) : null}
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
               {searchItems.map((m) => (
                 <MovieCard key={m.imdbID} movie={m} onPosterError={markPosterBroken} />
               ))}

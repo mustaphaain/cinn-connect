@@ -35,15 +35,15 @@ function Stars({
             key={stars}
             type="button"
             disabled={disabled}
-            onMouseEnter={() => !disabled && setHover(stars)}
-            onMouseLeave={() => !disabled && setHover(null)}
+            onPointerEnter={() => !disabled && setHover(stars)}
+            onPointerLeave={() => !disabled && setHover(null)}
             onClick={() => onChange?.(stars)}
             aria-label={`Noter: ${stars} / 5`}
-            className={`relative h-6 w-6 p-0 text-lg leading-none transition ${
+            className={`relative h-11 w-11 p-0 text-xl leading-none transition md:h-6 md:w-6 md:text-lg ${
               disabled ? 'cursor-not-allowed' : 'cursor-pointer'
             }`}
           >
-            <span className="relative inline-flex h-6 w-6 items-center justify-center">
+            <span className="relative inline-flex h-11 w-11 items-center justify-center md:h-6 md:w-6">
               <span className={`absolute inset-0 flex items-center justify-center ${emptyColor}`}>★</span>
               {(isFull || isHalf) && (
                 <span
@@ -149,12 +149,12 @@ export function FilmDetailsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/70 p-4 shadow-sm backdrop-blur-md dark:border-zinc-800/70 dark:bg-zinc-900/55 sm:p-5">
+      <section className="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/70 p-4 shadow-sm backdrop-blur-md dark:border-zinc-800/70 dark:bg-zinc-900/55 md:p-5">
         <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-gradient-to-br from-indigo-500/20 to-fuchsia-500/20 blur-2xl" />
-        <div className="relative flex items-center justify-between gap-3">
+        <div className="relative flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Link
             to="/films"
-            className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white/70 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-white/90 dark:border-zinc-700 dark:bg-zinc-950/60 dark:text-zinc-50 dark:hover:bg-zinc-950/80"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white/70 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-white/90 dark:border-zinc-700 dark:bg-zinc-950/60 dark:text-zinc-50 dark:hover:bg-zinc-950/80 md:w-auto md:justify-start"
           >
             ← Films
           </Link>
@@ -164,14 +164,14 @@ export function FilmDetailsPage() {
               onClick={() => toggleFavoriteMutation.mutate()}
               disabled={toggleFavoriteMutation.isPending || query.isLoading || !id}
               className={cx(
-                'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-60',
+                'inline-flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-60 md:w-auto md:justify-center',
                 favoriteQuery.data?.favorite
                   ? 'bg-gradient-to-r from-rose-600 to-fuchsia-600 text-white ring-black/5 hover:from-rose-500 hover:to-fuchsia-500 dark:ring-white/10'
                   : 'border border-zinc-200 bg-white/70 text-zinc-900 hover:bg-white/90 dark:border-zinc-700 dark:bg-zinc-950/60 dark:text-zinc-50 dark:hover:bg-zinc-950/80'
               )}
             >
               <span className="text-base leading-none">{favoriteQuery.data?.favorite ? '♥' : '♡'}</span>
-              <span className="hidden sm:inline">{favoriteQuery.data?.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}</span>
+              <span className="hidden md:inline">{favoriteQuery.data?.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}</span>
             </button>
           ) : null}
         </div>
@@ -181,8 +181,8 @@ export function FilmDetailsPage() {
       {(error || apiError) && <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200">{error ?? apiError}</div>}
 
       {movie && (
-        <section className="relative grid gap-6 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/70 p-6 shadow-sm backdrop-blur-md dark:border-zinc-800/70 dark:bg-zinc-900/55 md:grid-cols-[280px_1fr]">
-          <div className="overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
+        <section className="relative flex flex-col gap-6 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/70 p-4 shadow-sm backdrop-blur-md dark:border-zinc-800/70 dark:bg-zinc-900/55 md:grid md:grid-cols-[280px_1fr] md:p-6">
+          <div className="aspect-[2/3] w-full overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
             {movie.Poster && movie.Poster !== 'N/A' && !posterBroken ? (
               <img
                 src={getBestPosterUrl(movie.Poster, 'detail') ?? movie.Poster}
@@ -192,7 +192,7 @@ export function FilmDetailsPage() {
                 onError={() => setPosterBroken(true)}
               />
             ) : (
-              <div className="flex aspect-[2/3] items-center justify-center text-xs text-zinc-500 dark:text-zinc-400">Pas d’affiche</div>
+              <div className="flex h-full items-center justify-center text-xs text-zinc-500 dark:text-zinc-400">Pas d’affiche</div>
             )}
           </div>
 
@@ -208,7 +208,7 @@ export function FilmDetailsPage() {
             {movie.Plot && <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">{movie.Plot}</p>}
 
             <div className="rounded-xl border border-zinc-200/80 bg-white/75 p-4 text-sm shadow-sm backdrop-blur dark:border-zinc-800/70 dark:bg-zinc-950/40">
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="min-w-0">
                   <div className="text-zinc-700 dark:text-zinc-200">
                     <span className="font-semibold">Moyenne</span>{' '}

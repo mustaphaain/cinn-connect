@@ -109,7 +109,7 @@ function FilmsByCategoryInner({ categorie }: { categorie: string }) {
           </h1>
         </div>
         <div className="mt-3">
-          <Link to="/films" className="inline-flex w-full items-center justify-center rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800 sm:w-auto">
+          <Link to="/films" className="inline-flex w-full items-center justify-center rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800 md:w-auto">
             Retour
           </Link>
         </div>
@@ -118,7 +118,7 @@ function FilmsByCategoryInner({ categorie }: { categorie: string }) {
       {isLoading && <div className="text-sm text-zinc-600 dark:text-zinc-300">Chargement…</div>}
       {errorMessage && <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200">{errorMessage}</div>}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5">
         {visibleItems.map((m) => (
           <Link key={m.imdbID} to="/film/$id" params={{ id: m.imdbID }} className="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-fuchsia-800/60">
             <div className="aspect-[2/3] w-full bg-zinc-100 dark:bg-zinc-800">

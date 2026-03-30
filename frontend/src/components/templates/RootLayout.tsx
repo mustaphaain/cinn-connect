@@ -1,5 +1,6 @@
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
 import { Navbar } from '../Navbar'
+import { BottomNav } from '../BottomNav'
 import DarkVeil from '../DarkVeil'
 import { useTheme } from '../../contexts/useTheme'
 
@@ -12,7 +13,7 @@ export function RootLayout() {
 
   return (
     <div
-      className={`relative isolate flex min-h-dvh flex-col text-zinc-900 dark:text-zinc-50 ${
+      className={`relative isolate flex min-h-dvh flex-col overflow-x-hidden md:overflow-x-visible text-zinc-900 dark:text-zinc-50 ${
         showDarkVeil ? 'bg-transparent' : 'bg-zinc-50 dark:bg-zinc-950'
       }`}
     >
@@ -31,15 +32,16 @@ export function RootLayout() {
         </div>
       ) : null}
 
-      <div className="relative z-20">
+      <div className="relative z-20 hidden md:block">
         <Navbar />
       </div>
-      <main className="relative z-20 mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+      <main className="relative z-20 min-h-0 mx-auto w-full max-w-md flex flex-1 flex-col px-4 pt-4 pb-28 md:max-w-6xl md:pt-8 md:pb-8">
         <Outlet />
       </main>
-      <footer className="relative z-20 border-t border-zinc-200/80 py-6 text-center text-xs text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
+      <footer className="relative z-20 hidden border-t border-zinc-200/80 py-6 text-center text-xs text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400 md:block">
         CinéConnect · plateforme cinéphile · HETIC Web2
       </footer>
+      <BottomNav />
     </div>
   )
 }

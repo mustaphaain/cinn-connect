@@ -93,8 +93,8 @@ export function DiscussionPage() {
   const friends = friendsData?.friends ?? []
 
   return (
-    <section className="space-y-4">
-      <GlassPanel className="relative overflow-hidden p-5 sm:p-6">
+    <section className="flex min-h-0 flex-1 flex-col gap-4 md:block md:space-y-4">
+      <GlassPanel className="relative overflow-hidden p-5 md:p-6">
         <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-gradient-to-br from-indigo-500/20 to-fuchsia-500/20 blur-2xl" />
         <div className="pointer-events-none absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-gradient-to-br from-amber-500/10 to-rose-500/10 blur-2xl" />
         <div className="relative">
@@ -134,8 +134,11 @@ export function DiscussionPage() {
         </div>
       </GlassPanel>
 
-      <GlassPanel className="overflow-hidden">
-        <div ref={listRef} className="flex max-h-[58vh] min-h-[260px] flex-col gap-3 overflow-y-auto p-4 sm:p-5">
+      <GlassPanel className="flex min-h-0 flex-1 flex-col overflow-hidden md:block">
+        <div
+          ref={listRef}
+          className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4 md:p-5 md:max-h-[58vh] md:min-h-[260px] md:flex-none"
+        >
           {currentMessages.map((m) => (
             <article
               key={m.id}
@@ -154,21 +157,21 @@ export function DiscussionPage() {
 
         {socketError ? <div className="px-4 pb-2 text-sm text-red-600 dark:text-red-400">{socketError}</div> : null}
 
-        <div className="border-t border-zinc-200/80 p-4 dark:border-zinc-800/80">
-          <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="border-t border-zinc-200/80 p-4 pb-[env(safe-area-inset-bottom)] dark:border-zinc-800/80 md:pb-4">
+          <div className="flex flex-col gap-2 md:flex-row">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && send()}
               placeholder={user ? (activePrivateFriendId == null ? 'Écris un message public...' : 'Écris un message privé...') : 'Connecte-toi pour envoyer un message'}
               disabled={!user}
-              className="flex-1 rounded-xl border border-zinc-200 bg-white/80 px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none ring-indigo-600/20 focus:ring-4 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-950/60 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:ring-fuchsia-500/15"
+              className="w-full flex-1 rounded-xl border border-zinc-200 bg-white/80 px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none ring-indigo-600/20 focus:ring-4 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-950/60 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:ring-fuchsia-500/15 md:w-auto"
             />
             <button
               type="button"
               onClick={send}
               disabled={!user || !input.trim()}
-              className="rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-black/5 transition hover:from-indigo-500 hover:to-fuchsia-500 disabled:opacity-50 dark:ring-white/10 sm:w-auto"
+              className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-black/5 transition hover:from-indigo-500 hover:to-fuchsia-500 disabled:opacity-50 dark:ring-white/10 md:w-auto"
             >
               Envoyer
             </button>
