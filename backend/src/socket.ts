@@ -1,6 +1,6 @@
 import { Server } from 'socket.io'
 import jwt from 'jsonwebtoken'
-import { and, eq, or } from 'drizzle-orm'
+import { and, eq, isNotNull, isNull, or } from 'drizzle-orm'
 import { db } from './db/index.js'
 import { friends, messages, users } from './db/schema.js'
 import type { JwtPayload } from './middleware/auth.js'
@@ -111,6 +111,51 @@ export function setupSocket(io: Server) {
       }
       io.to('user:' + userId).emit('private:message', eventPayload)
       io.to('user:' + toUserId).emit('private:message', eventPayload)
+    })
+
+    socket.on('message:delete', async (payload: { id?: number }) => {
+      if (!userId) {
+        socket.emit('error', { message: 'Connecte-toi pour supprimer un message' })
+        return
+      }
+      const messageId = Number(payload?.id)
+      if (!Number.isFinite(messageId) || messageId <= 0) return
+
+      const deleted = await db
+        .delete(messages)
+        .where(and(eq(messages.id, messageId), eq(messages.senderId, userId), isNull(messages.recipientId)))
+        .returning({ id: messages.id })
+
+      if (deleted.length === 0) {
+        socket.emit('error', { message: 'Message introuvable' })
+        return
+      }
+
+      io.emit('message:deleted', { id: messageId })
+    })
+
+    socket.on('private:message:delete', async (payload: { id?: number }) => {
+      if (!userId) {
+        socket.emit('error', { message: 'Connecte-toi pour supprimer un message' })
+        return
+      }
+      const messageId = Number(payload?.id)
+      if (!Number.isFinite(messageId) || messageId <= 0) return
+
+      const deleted = await db
+        .delete(messages)
+        .where(and(eq(messages.id, messageId), eq(messages.senderId, userId), isNotNull(messages.recipientId)))
+        .returning({ id: messages.id, recipientId: messages.recipientId })
+
+      if (deleted.length === 0) {
+        socket.emit('error', { message: 'Message introuvable' })
+        return
+      }
+
+      const recipientId = deleted[0]?.recipientId
+      if (typeof recipientId !== 'number') return
+      io.to('user:' + userId).emit('private:message:deleted', { id: messageId, recipientId })
+      io.to('user:' + recipientId).emit('private:message:deleted', { id: messageId, recipientId })
     })
   })
 }

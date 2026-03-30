@@ -72,3 +72,24 @@ export async function listPrivateMessages(req: Request, res: Response) {
   res.json(list.reverse())
 }
 
+export async function deleteMessage(req: Request, res: Response) {
+  const userId = req.userId
+  if (!userId) return res.status(401).json({ error: 'Non authentifié' })
+
+  const messageId = Number(req.params.id)
+  if (!Number.isFinite(messageId) || messageId <= 0) {
+    return res.status(400).json({ error: 'id invalide' })
+  }
+
+  const deleted = await db
+    .delete(messages)
+    .where(and(eq(messages.id, messageId), eq(messages.senderId, userId)))
+    .returning({ id: messages.id })
+
+  if (deleted.length === 0) {
+    return res.status(404).json({ error: 'Message introuvable' })
+  }
+
+  res.json({ ok: true })
+}
+

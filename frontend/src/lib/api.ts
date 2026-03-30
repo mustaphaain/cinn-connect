@@ -130,6 +130,7 @@ export const api = {
   messages: {
     list: () => request<ChatMessage[]>('/messages'),
     listPrivate: (friendId: number) => request<ChatMessage[]>('/messages/private/' + friendId),
+    delete: (id: number) => request<{ ok: true }>('/messages/' + id, { method: 'DELETE' }),
   },
   favorites: {
     list: () => request<FavoriteFilm[]>('/favorites'),
