@@ -63,6 +63,7 @@ function FilmsByCategoryInner({ categorie }: { categorie: string }) {
 
   const error = pageQueries.find((q) => q.error)?.error
   const errorMessage = error instanceof Error ? error.message : undefined
+  const missingOmdbKey = Boolean(errorMessage && /OMDB_API_KEY/i.test(errorMessage))
 
   const pagesData = pageQueries.map((q) => q.data).filter((d): d is OmdbSearchResponse => Boolean(d && typeof d === 'object'))
   const isLoading = pageQueries.some((q) => q.isLoading)
@@ -117,6 +118,17 @@ function FilmsByCategoryInner({ categorie }: { categorie: string }) {
 
       {isLoading && <div className="text-sm text-zinc-600 dark:text-zinc-300">Chargement…</div>}
       {errorMessage && <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200">{errorMessage}</div>}
+      {missingOmdbKey ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-100">
+          Clé OMDb manquante côté serveur. Ajoute `OMDB_API_KEY` dans `backend/.env`, puis redémarre le backend.
+        </div>
+      ) : null}
+      {!isLoading && !errorMessage && visibleItems.length === 0 ? (
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50">
+          Aucun film à afficher pour cette catégorie. Si c’est une première installation, lance `pnpm -C backend seed:films`
+          pour remplir la base.
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5">
         {visibleItems.map((m) => (

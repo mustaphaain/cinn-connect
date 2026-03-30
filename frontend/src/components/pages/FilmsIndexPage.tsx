@@ -141,6 +141,8 @@ export function FilmsIndexPage() {
     })
   }, [categoryQueries, brokenPosters, selectedCategories])
 
+  const noCategorySelected = !searchActive && selectedCategories.length === 0
+
   const searchItems = useMemo(() => {
     const flat = flattenUnique(searchQuery.data?.pages)
     const filtered = flat.filter((m) => hasPoster(m) && !brokenPosters.has(m.imdbID))
@@ -165,6 +167,7 @@ export function FilmsIndexPage() {
   const isLoading = searchActive ? searchQuery.isLoading : categoryQueries.some((r) => r.isLoading)
   const error = (searchActive ? searchQuery.error : categoryQueries.find((r) => r.error)?.error) as Error | undefined
   const errorMessage = error instanceof Error ? error.message : undefined
+  const missingOmdbKey = Boolean(errorMessage && /OMDB_API_KEY/i.test(errorMessage))
 
   const markPosterBroken = (id: string) => {
     setBrokenPosters((prev) => {
@@ -176,9 +179,13 @@ export function FilmsIndexPage() {
   }
 
   const toggleCategory = (slug: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]
-    )
+    // UX: comportement "tabs" → 1 catégorie active à la fois.
+    // Si l'utilisateur reclique la seule catégorie active, on revient à "Tout".
+    setSelectedCategories((prev) => {
+      const isOnlySelected = prev.length === 1 && prev[0] === slug
+      if (isOnlySelected) return categories.map((c) => c.slug)
+      return [slug]
+    })
   }
 
   return (
@@ -299,6 +306,12 @@ export function FilmsIndexPage() {
             {errorMessage}
           </div>
         )}
+        {missingOmdbKey ? (
+          <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-100">
+            Pour explorer et rechercher des films, ajoute une clé OMDb côté serveur dans `backend/.env` :
+            `OMDB_API_KEY=...` puis redémarre le backend.
+          </div>
+        ) : null}
 
         {searchActive ? (
           <>
@@ -325,6 +338,29 @@ export function FilmsIndexPage() {
           </>
         ) : (
           <div className="space-y-12">
+            {noCategorySelected ? (
+              <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-4 text-sm text-zinc-200 backdrop-blur-md">
+                Sélectionne au moins une catégorie pour afficher des films.
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategories(categories.map((c) => c.slug))}
+                    className="inline-flex items-center justify-center rounded-full border border-white/10 bg-zinc-900/60 px-5 py-2 text-xs font-bold text-zinc-50 backdrop-blur-md transition hover:bg-zinc-900/80"
+                  >
+                    Réinitialiser (Tout)
+                  </button>
+                </div>
+              </div>
+            ) : null}
+            {!isLoading && !errorMessage && trendingRecent.length === 0 && byCategory.every((c) => c.items.length === 0) ? (
+              <div className="rounded-2xl border border-white/10 bg-zinc-950/40 p-4 text-sm text-zinc-200 backdrop-blur-md">
+                Aucun film disponible pour le moment. La base de films semble vide.
+                <div className="mt-2 text-xs text-zinc-400">
+                  Lance `pnpm -C backend seed:films` (avec `OMDB_API_KEY` dans `backend/.env`) pour remplir le catalogue,
+                  ou utilise la recherche OMDb.
+                </div>
+              </div>
+            ) : null}
             {trendingRecent.length > 0 ? (
               <section className="space-y-3">
                 <div className="flex items-end justify-between gap-3">
