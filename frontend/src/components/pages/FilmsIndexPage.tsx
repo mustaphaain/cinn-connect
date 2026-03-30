@@ -16,8 +16,11 @@ const categories = [
 
 const MIN_SEARCH_LEN = 2
 const MAX_OMDB_PAGES = 10
-const CATEGORY_PREVIEW_COUNT = 12
-const SCIENCE_FICTION_PREVIEW_COUNT = 18
+/** Aperçu par catégorie (carrousel horizontal) — moins d’items = cartes plus lisibles */
+const CATEGORY_PREVIEW_COUNT = 8
+const SCIENCE_FICTION_PREVIEW_COUNT = 10
+/** Grille « Sorties récentes » — nombre réduit pour un rendu moins chargé */
+const RECENT_RELEASES_COUNT = 8
 const CATEGORY_FETCH_LIMIT = 80
 
 const GENRES_BY_SLUG: Record<string, string[]> = {
@@ -71,26 +74,31 @@ function MovieCard({
       to="/film/$id"
       params={{ id: movie.imdbID }}
       className={cx(
-        'group overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/40 shadow-2xl shadow-black/40 backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:border-fuchsia-500/30 hover:bg-zinc-950/55',
-        'dark:bg-zinc-950/40',
-        compact ? (dense ? 'w-28 shrink-0 sm:w-32' : 'w-36 shrink-0 sm:w-44') : ''
+        'group flex flex-col overflow-hidden rounded-2xl border bg-zinc-950/50 shadow-lg shadow-black/20 backdrop-blur-md transition duration-300',
+        'border-zinc-200/80 hover:-translate-y-1 hover:border-indigo-400/40 hover:shadow-xl hover:shadow-indigo-950/20',
+        'dark:border-white/10 dark:bg-zinc-950/50 dark:shadow-black/40 dark:hover:border-fuchsia-500/35 dark:hover:shadow-black/50',
+        compact
+          ? dense
+            ? 'w-[7.25rem] shrink-0 sm:w-32'
+            : 'w-[10.25rem] shrink-0 sm:w-44 md:w-48'
+          : ''
       )}
     >
-      <div className="relative aspect-[2/3] w-full overflow-hidden bg-zinc-900/40">
+      <div className="relative aspect-[2/3] w-full overflow-hidden bg-zinc-900/50">
         <img
           src={getBestPosterUrl(movie.Poster, 'card') ?? movie.Poster}
           alt={movie.Title}
-          className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.04]"
+          className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
           loading="lazy"
           onError={() => onPosterError?.(movie.imdbID)}
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0 opacity-70 transition-opacity group-hover:opacity-100" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80 transition-opacity group-hover:opacity-100" />
       </div>
-      <div className="p-3">
-        <div className="line-clamp-2 text-sm font-semibold text-zinc-50 group-hover:underline">
+      <div className="flex flex-1 flex-col p-2.5 sm:p-3">
+        <div className="line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-snug text-zinc-50 group-hover:underline sm:text-sm">
           {movie.Title}
         </div>
-        <div className="mt-1 text-xs font-medium uppercase tracking-tight text-zinc-400">
+        <div className="mt-auto pt-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
           {movie.Year}
         </div>
       </div>
@@ -365,24 +373,24 @@ export function FilmsIndexPage() {
               <section className="space-y-3">
                 <div className="flex items-end justify-between gap-3">
                   <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-fuchsia-300">
+                    <span className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-fuchsia-600 dark:text-fuchsia-300">
                       Nouveautés
                     </span>
-                    <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-zinc-50">
+                    <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
                       Sorties récentes
                     </h2>
                   </div>
                   <Link
                     to="/films/$categorie"
                     params={{ categorie: 'action' }}
-                    className="text-sm font-bold text-indigo-300 hover:underline"
+                    className="text-sm font-bold text-indigo-600 hover:underline dark:text-indigo-300"
                   >
                     Voir tout
                   </Link>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
-                  {trendingRecent.slice(0, 18).map((m) => (
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:max-w-5xl lg:grid-cols-4">
+                  {trendingRecent.slice(0, RECENT_RELEASES_COUNT).map((m) => (
                     <MovieCard key={`recent-${m.imdbID}`} movie={m} onPosterError={markPosterBroken} />
                   ))}
                 </div>
@@ -392,24 +400,24 @@ export function FilmsIndexPage() {
             {byCategory
               .filter((cat) => cat.enabled)
               .map((cat) => (
-                <section key={cat.slug} className="space-y-3">
+                <section key={cat.slug} className="space-y-4">
                   <div className="flex items-end justify-between gap-3">
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-fuchsia-300">
+                      <span className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-fuchsia-600 dark:text-fuchsia-300">
                         {cat.slug === 'science-fiction'
                           ? 'Inconnu'
                           : cat.slug === 'action'
                             ? 'Adrénaline'
                             : 'Sélection'}
                       </span>
-                      <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-zinc-50">
+                      <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
                         {cat.label}
                       </h2>
                     </div>
                     <Link
                       to="/films/$categorie"
                       params={{ categorie: cat.slug }}
-                      className="text-sm font-bold text-indigo-300 hover:underline"
+                      className="shrink-0 text-sm font-bold text-indigo-600 hover:underline dark:text-indigo-300"
                     >
                       Voir tout
                     </Link>
@@ -417,19 +425,21 @@ export function FilmsIndexPage() {
                   {cat.items.length === 0 ? (
                     <p className="text-sm text-zinc-400">Aucun film avec affiche valide.</p>
                   ) : (
-                    <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                      {cat.items
-                        .slice(
-                          0,
-                          cat.slug === 'science-fiction'
-                            ? SCIENCE_FICTION_PREVIEW_COUNT
-                            : CATEGORY_PREVIEW_COUNT
-                        )
-                        .map((m) => (
-                          <div key={`${cat.slug}-${m.imdbID}`} className="snap-start">
-                            <MovieCard movie={m} compact dense onPosterError={markPosterBroken} />
-                          </div>
-                        ))}
+                    <div className="rounded-2xl border border-zinc-200/80 bg-gradient-to-b from-white/80 to-zinc-100/50 p-4 shadow-sm dark:border-white/10 dark:from-zinc-950/50 dark:to-zinc-950/30 dark:shadow-none">
+                      <div className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-1 pt-0.5 [-ms-overflow-style:none] [scrollbar-width:none] md:gap-6 [&::-webkit-scrollbar]:hidden">
+                        {cat.items
+                          .slice(
+                            0,
+                            cat.slug === 'science-fiction'
+                              ? SCIENCE_FICTION_PREVIEW_COUNT
+                              : CATEGORY_PREVIEW_COUNT
+                          )
+                          .map((m) => (
+                            <div key={`${cat.slug}-${m.imdbID}`} className="snap-start snap-always first:pl-0.5 last:pr-0.5">
+                              <MovieCard movie={m} compact onPosterError={markPosterBroken} />
+                            </div>
+                          ))}
+                      </div>
                     </div>
                   )}
                 </section>

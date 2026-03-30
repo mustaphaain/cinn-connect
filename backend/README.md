@@ -69,6 +69,16 @@ Tu dois voir : `Serveur sur http://localhost:3001`. Ensuite le front peut appele
 - `GET /reviews/me/film/:imdbId` — Note actuelle de l’utilisateur pour un film
 - `GET /users/search?username=...` — Recherche utilisateur (auth requise)
 
+### OMDb (proxy + cache côté serveur)
+
+Nécessite `OMDB_API_KEY` dans `backend/.env` pour les appels live ; les réponses peuvent être mises en cache (voir `OMDB_CACHE_MAX_AGE_DAYS` dans `.env.example`).
+
+- `GET /films/omdb/search?q=...&page=...` — Recherche titres (format attendu par le frontend)
+- `GET /films/omdb/movie/:imdbId` — Détail par IMDb ID
+- `GET /films/omdb/by-title` — Détail par titre (et année si fournie)
+
+Les routes catalogue internes (films issus de la base) complètent ces endpoints selon l’implémentation dans `src/routes/`.
+
 ## Auth (JWT) — Cookie HttpOnly (pas de localStorage)
 
 Le projet utilise toujours des **JWT** (`jsonwebtoken`), mais le token n’est **pas stocké dans le frontend** :
@@ -82,6 +92,8 @@ Le projet utilise toujours des **JWT** (`jsonwebtoken`), mais le token n’est *
 - `FRONTEND_ORIGIN` (optionnel) : origin autorisée pour CORS en dev (défaut `http://localhost:5173`).
 - `AUTH_COOKIE_NAME` (optionnel) : nom du cookie d’auth (défaut `cineconnect_auth`).
 - `JWT_SECRET` : secret de signature du JWT (important en prod).
+- `OMDB_API_KEY` : clé API [OMDb](https://www.omdbapi.com/) (recherche films, seeds, cache). Sans clé, le serveur peut refuser les appels OMDb ou renvoyer une erreur explicite.
+- `OMDB_CACHE_MAX_AGE_DAYS` (optionnel) : rafraîchissement du cache OMDb côté serveur.
 
 #### Google OAuth
 
@@ -116,6 +128,13 @@ Dans **Google Cloud Console** > **API et services** :
   - `pnpm exec tsx src/fake_rating/seed_all.ts` : OMDb → `films`, puis bots → `reviews`
   - `pnpm run seed:films` : seed films OMDb étendu (pagination multi-queries, anti-doublons)
   - `pnpm exec tsx src/fake_rating/seed_friends_matheo91.ts` : ajoute des amis pour tester le chat privé
+
+## Déploiement (Docker / Fly.io)
+
+- **`Dockerfile`** (multi-stage) : build TypeScript (`npm run build`), exécution `node dist/index.js`, port **3001**.
+- **`fly.toml`** : configuration d’une app Fly (ex. `cineconnect-api`, région `cdg`, `internal_port = 3001`).
+
+Avant déploiement, définir sur la plateforme les **secrets / variables** équivalents à `.env` (`DATABASE_URL`, `JWT_SECRET`, `FRONTEND_ORIGIN`, `OMDB_API_KEY`, clés Google si OAuth, etc.). La base PostgreSQL peut être une instance managée (Fly Postgres, Neon, etc.) : adapter `DATABASE_URL`.
 
 ## Mises à jour backend récentes
 
