@@ -320,6 +320,34 @@ export function ProfilPage() {
                   </a>
                 </div>
 
+                {/* Mobile quick tabs (parameters) */}
+                <div className="mt-3 flex gap-2 overflow-x-auto pb-1 sm:hidden">
+                  <button
+                    type="button"
+                    onClick={() => setTab('customize')}
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-zinc-200 bg-white/70 px-3 py-2.5 text-xs font-semibold text-zinc-900 shadow-sm backdrop-blur-md transition hover:bg-white/90 dark:border-zinc-700 dark:bg-zinc-950/50 dark:text-zinc-50 dark:hover:bg-zinc-950/70"
+                  >
+                    <UserRoundCog className="h-4 w-4" />
+                    Personnaliser
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTab('security')}
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-zinc-200 bg-white/70 px-3 py-2.5 text-xs font-semibold text-zinc-900 shadow-sm backdrop-blur-md transition hover:bg-white/90 dark:border-zinc-700 dark:bg-zinc-950/50 dark:text-zinc-50 dark:hover:bg-zinc-950/70"
+                  >
+                    <Shield className="h-4 w-4" />
+                    Sécurité
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTab('friends')}
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-zinc-200 bg-white/70 px-3 py-2.5 text-xs font-semibold text-zinc-900 shadow-sm backdrop-blur-md transition hover:bg-white/90 dark:border-zinc-700 dark:bg-zinc-950/50 dark:text-zinc-50 dark:hover:bg-zinc-950/70"
+                  >
+                    <Users className="h-4 w-4" />
+                    Amis
+                  </button>
+                </div>
+
                 {/* Desktop/tablet header */}
                 <div className="hidden gap-6 sm:grid lg:grid-cols-12 lg:items-center">
                   <div className="lg:col-span-4">
