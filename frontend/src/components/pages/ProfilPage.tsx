@@ -19,6 +19,7 @@ import { AVATAR_PRESETS, avatarIdToSrc } from '../../lib/avatars'
 import { getBestPosterUrl } from '../../lib/poster'
 import { GlassPanel } from '../molecules/GlassPanel'
 import { SegmentedBar } from '../molecules/SegmentedBar'
+import { ConfirmDialog } from '../molecules/ConfirmDialog'
 
 function cx(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(' ')
@@ -30,6 +31,7 @@ export function ProfilPage() {
   const { user, loading, login, register, logout } = useAuth()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [tab, setTab] = useState<ProfileTab>('home')
+  const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false)
   const search = useSearch({ from: '/profil' })
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -873,7 +875,9 @@ export function ProfilPage() {
               </p>
               <button
                 type="button"
-                onClick={() => logout()}
+                onClick={() => {
+                  setConfirmLogoutOpen(true)
+                }}
                 className="mt-3 inline-flex items-center justify-center rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200 dark:hover:bg-red-950/45"
               >
                 Se déconnecter
@@ -881,6 +885,20 @@ export function ProfilPage() {
             </div>
           </GlassPanel>
         )}
+
+        <ConfirmDialog
+          open={confirmLogoutOpen}
+          title="Se déconnecter ?"
+          description="Tu vas fermer la session sur cet appareil."
+          confirmText="Se déconnecter"
+          cancelText="Annuler"
+          destructive
+          onClose={() => setConfirmLogoutOpen(false)}
+          onConfirm={() => {
+            setConfirmLogoutOpen(false)
+            logout()
+          }}
+        />
 
         {tab === 'friends' && (
           <GlassPanel className="p-6">

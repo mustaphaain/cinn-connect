@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/useAuth'
 import { useTheme } from '../../contexts/useTheme'
 import { api } from '../../lib/api'
 import { GlassPanel } from '../molecules/GlassPanel'
+import { ConfirmDialog } from '../molecules/ConfirmDialog'
 
 type NotifPrefs = {
   friendRequests: boolean
@@ -37,6 +38,7 @@ export function ReglagesPage() {
   const { theme, toggleTheme } = useTheme()
 
   const [notifPrefs, setNotifPrefs] = useState<NotifPrefs>(() => loadPrefs())
+  const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false)
 
   useEffect(() => {
     try {
@@ -311,7 +313,10 @@ export function ReglagesPage() {
               </div>
               <button
                 type="button"
-                onClick={() => logout()}
+                onClick={() => {
+                  if (!user || loading) return
+                  setConfirmLogoutOpen(true)
+                }}
                 disabled={loading || !user}
                 className="inline-flex items-center justify-center rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:opacity-50 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200 dark:hover:bg-red-950/45"
               >
@@ -326,6 +331,20 @@ export function ReglagesPage() {
           </GlassPanel>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmLogoutOpen}
+        title="Se déconnecter ?"
+        description="Tu vas fermer la session sur cet appareil."
+        confirmText="Se déconnecter"
+        cancelText="Annuler"
+        destructive
+        onClose={() => setConfirmLogoutOpen(false)}
+        onConfirm={() => {
+          setConfirmLogoutOpen(false)
+          logout()
+        }}
+      />
     </section>
   )
 }

@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { io } from 'socket.io-client'
+import { Trash2 } from 'lucide-react'
 import { api, getApiBase, type ChatMessage } from '../../lib/api'
 import { useAuth } from '../../contexts/useAuth'
 import { avatarIdToSrc } from '../../lib/avatars'
 import { GlassPanel } from '../molecules/GlassPanel'
+import { ConfirmDialog } from '../molecules/ConfirmDialog'
 
 function cx(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(' ')
@@ -17,6 +19,8 @@ export function DiscussionPage() {
   const [input, setInput] = useState('')
   const [socketError, setSocketError] = useState<string | null>(null)
   const [activePrivateFriendId, setActivePrivateFriendId] = useState<number | null>(null)
+  const [deletedById, setDeletedById] = useState<Record<number, true>>({})
+  const [confirmDelete, setConfirmDelete] = useState<ChatMessage | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
   const { data: initialPublic } = useQuery({
@@ -59,6 +63,16 @@ export function DiscussionPage() {
         [otherId]: [...(prev[otherId] ?? []), msg],
       }))
     })
+    socket.on('message:deleted', (data: { id?: number }) => {
+      const id = Number(data?.id)
+      if (!Number.isFinite(id) || id <= 0) return
+      setDeletedById((prev) => ({ ...prev, [id]: true }))
+    })
+    socket.on('private:message:deleted', (data: { id?: number }) => {
+      const id = Number(data?.id)
+      if (!Number.isFinite(id) || id <= 0) return
+      setDeletedById((prev) => ({ ...prev, [id]: true }))
+    })
     socket.on('error', (data: { message?: string }) => {
       setSocketError(data.message || 'Erreur')
     })
@@ -89,8 +103,36 @@ export function DiscussionPage() {
   const privateBase = activePrivateFriendId != null ? (initialPrivate ?? []) : []
   const privateLive = activePrivateFriendId != null ? (livePrivateByFriend[activePrivateFriendId] ?? []) : []
   const privateMessages = [...privateBase, ...privateLive]
-  const currentMessages = activePrivateFriendId == null ? publicMessages : privateMessages
+  const rawCurrentMessages = activePrivateFriendId == null ? publicMessages : privateMessages
+  const currentMessages = rawCurrentMessages.filter((m) => !deletedById[m.id])
   const friends = friendsData?.friends ?? []
+
+  const confirmDeleteMessage = (m: ChatMessage) => {
+    if (!user || m.senderId !== user.id) return
+    setConfirmDelete(m)
+  }
+
+  const doDelete = async (m: ChatMessage) => {
+    setDeletedById((prev) => ({ ...prev, [m.id]: true }))
+    try {
+      if (socketRef.current) {
+        if (activePrivateFriendId != null) {
+          socketRef.current.emit('private:message:delete', { id: m.id })
+        } else {
+          socketRef.current.emit('message:delete', { id: m.id })
+        }
+      } else {
+        await api.messages.delete(m.id)
+      }
+    } catch (err) {
+      setDeletedById((prev) => {
+        const next = { ...prev }
+        delete next[m.id]
+        return next
+      })
+      setSocketError(err instanceof Error ? err.message : 'Erreur')
+    }
+  }
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-4 md:block md:space-y-4">
@@ -144,11 +186,31 @@ export function DiscussionPage() {
               key={m.id}
               className="rounded-2xl border border-zinc-200/80 bg-white/70 px-3 py-2.5 shadow-sm backdrop-blur dark:border-zinc-800/70 dark:bg-zinc-950/35"
             >
-              <div className="flex items-center gap-2">
-                <img src={avatarIdToSrc(m.avatarUrl)} alt={m.username} className="h-7 w-7 rounded-full border border-zinc-200 dark:border-zinc-700" />
-                <a href={'/user/' + m.senderId} className="text-xs font-semibold text-indigo-600 hover:underline dark:text-fuchsia-400">
-                  {m.username}
-                </a>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <img
+                    src={avatarIdToSrc(m.avatarUrl)}
+                    alt={m.username}
+                    className="h-7 w-7 shrink-0 rounded-full border border-zinc-200 dark:border-zinc-700"
+                  />
+                  <a
+                    href={'/user/' + m.senderId}
+                    className="truncate text-xs font-semibold text-indigo-600 hover:underline dark:text-fuchsia-400"
+                  >
+                    {m.username}
+                  </a>
+                </div>
+                {user?.id === m.senderId ? (
+                  <button
+                    type="button"
+                    onClick={() => confirmDeleteMessage(m)}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white/70 text-zinc-600 transition hover:bg-white hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950/40 dark:text-zinc-300 dark:hover:bg-zinc-950/70 dark:hover:text-zinc-50"
+                    title="Supprimer le message"
+                    aria-label="Supprimer le message"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                ) : null}
               </div>
               <p className="mt-1.5 text-sm text-zinc-800 dark:text-zinc-200">{m.content}</p>
             </article>
@@ -178,6 +240,21 @@ export function DiscussionPage() {
           </div>
         </div>
       </GlassPanel>
+
+      <ConfirmDialog
+        open={confirmDelete != null}
+        title="Supprimer le message ?"
+        description="Cette action supprimera ton message pour tout le monde."
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        destructive
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={async () => {
+          const m = confirmDelete
+          setConfirmDelete(null)
+          if (m) await doDelete(m)
+        }}
+      />
     </section>
   )
 }
