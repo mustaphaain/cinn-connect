@@ -1,10 +1,10 @@
 import { Link } from '@tanstack/react-router'
 
 const categories = [
-  { slug: 'action' as const, label: 'Action', accent: 'from-amber-500 to-rose-500' },
-  { slug: 'drama' as const, label: 'Drame', accent: 'from-indigo-500 to-violet-500' },
-  { slug: 'science-fiction' as const, label: 'S-F', accent: 'from-cyan-500 to-blue-600' },
-  { slug: 'comedy' as const, label: 'Comédie', accent: 'from-lime-500 to-emerald-600' },
+  { slug: 'action' as const, label: 'Action' },
+  { slug: 'drama' as const, label: 'Drame' },
+  { slug: 'science-fiction' as const, label: 'S-F' },
+  { slug: 'comedy' as const, label: 'Comédie' },
 ]
 
 const features = [
@@ -114,7 +114,7 @@ export function HomePage() {
               params={{ categorie: c.slug }}
               className="inline-flex items-center rounded-full border border-zinc-200 bg-white/90 px-4 py-2 text-sm font-medium text-zinc-800 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow dark:border-zinc-700 dark:bg-zinc-950/80 dark:text-zinc-100"
             >
-              <span className={`text-white ${c.accent} bg-clip-text text-transparent`}>{c.label}</span>
+              {c.label}
             </Link>
           ))}
           <Link

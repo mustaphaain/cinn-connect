@@ -71,7 +71,8 @@ export default function PillNav({
         navBg: '#3f3f46',
         pillBg: '#f4f4f5',
         pillText: '#18181b',
-        hoverText: '#fafafa',
+        // En mode clair (mono), le background est très clair : on garde un texte foncé au hover.
+        hoverText: '#18181b',
         bubble: '#52525b',
         activeBg: '#52525b',
       }
@@ -90,7 +91,8 @@ export default function PillNav({
       navBg: '#f4f4f5',
       pillBg: '#ffffff',
       pillText: '#111827',
-      hoverText: '#ffffff',
+      // En mode clair, le background du pill est blanc : éviter un texte blanc au hover.
+      hoverText: '#111827',
       bubble: '#52525b',
       activeBg: '#4f46e5',
     }
