@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Bell, ChevronRight, Globe, Lock, Moon, Shield, UserRoundCog, Users } from 'lucide-react'
+import { Bell, ChevronRight, Globe, Lock, Moon, Shield, Sun, UserRoundCog, Users } from 'lucide-react'
 import { useAuth } from '../../contexts/useAuth'
 import { useTheme } from '../../contexts/useTheme'
 import { api } from '../../lib/api'
@@ -105,12 +105,23 @@ export function ReglagesPage() {
             </p>
           </div>
 
-          <Link
-            to="/profil"
-            className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-white/70 px-4 py-2 text-sm font-medium text-zinc-900 transition hover:bg-white/90 dark:border-zinc-700 dark:bg-zinc-950/60 dark:text-zinc-50 dark:hover:bg-zinc-950/80"
-          >
-            Retour au profil
-          </Link>
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white/70 text-zinc-700 shadow-sm transition hover:bg-white/90 dark:border-zinc-700 dark:bg-zinc-950/60 dark:text-zinc-200 dark:hover:bg-zinc-950/80"
+              title={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
+              aria-label={theme === 'dark' ? 'Activer le thème clair' : 'Activer le thème sombre'}
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5" aria-hidden /> : <Moon className="h-5 w-5" aria-hidden />}
+            </button>
+            <Link
+              to="/profil"
+              className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-white/70 px-4 py-2 text-sm font-medium text-zinc-900 transition hover:bg-white/90 dark:border-zinc-700 dark:bg-zinc-950/60 dark:text-zinc-50 dark:hover:bg-zinc-950/80"
+            >
+              Retour au profil
+            </Link>
+          </div>
         </div>
       </GlassPanel>
 
