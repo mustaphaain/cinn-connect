@@ -1,25 +1,47 @@
 # CinéConnect
 
-Monorepo du projet **CinéConnect** (HETIC Web2).
+Monorepo du projet **CinéConnect** (HETIC Web2) : application cinéphile (catalogue, avis, amis, discussion temps réel).
 
-## Démarrage
+## Structure du dépôt
 
-1. Installer les dépendances :
+| Dossier | Rôle |
+|--------|------|
+| `frontend/` | SPA React (Vite, TanStack Router/Query, Tailwind, Socket.io client) |
+| `backend/` | API Express, Drizzle/PostgreSQL, JWT en cookie HttpOnly, Socket.io, Swagger |
+| `shared/` | Code partagé (si utilisé par le monorepo) |
+| Racine | `pnpm-workspaces`, scripts `docker:up` / `dev` |
+
+## Démarrage (développement)
+
+1. **Dépendances** (à la racine `cinn-connect`) :
 
 ```bash
 pnpm install
 ```
 
-2. Lancer le front :
+2. **Base PostgreSQL + migrations** (obligatoire pour auth et données) : voir le détail dans [`backend/README.md`](backend/README.md) — en résumé :
+
+```bash
+pnpm docker:up
+node backend/scripts/init-db.js
+pnpm -C backend db:migrate
+```
+
+3. **Variables d’environnement** : copier `backend/.env.example` → `backend/.env` et `frontend/.env.example` → `frontend/.env`. Pour la recherche catalogue et les seeds films, renseigner **`OMDB_API_KEY`** côté backend (voir `.env.example`).
+
+4. **Lancer le frontend** (port 5173 par défaut) :
 
 ```bash
 pnpm dev
 ```
 
-3. Lancer le back :
+5. **Lancer le backend** (port 3001) :
+
 ```bash
-pnpm -C backend dev 
+pnpm -C backend dev
 ```
+
+Ou : `pnpm dev:backend` depuis la racine.
 
 ## Authentification (JWT)
 
@@ -79,10 +101,35 @@ Commandes (à lancer depuis `backend/`) :
 - Le composant `PillNav` est utilisé dans le `header` avec tes routes existantes (`/`, `/films`, `/discussion`, `/profil`).
 - La navigation est cohérente avec le **mode clair/sombre** et le logo a été retiré du `PillNav` (reste le branding “CinéConnect” à gauche).
 
+## OMDb (catalogue / recherche)
+
+Les appels à l’API **OMDb** sont faits **uniquement par le backend** (la clé ne doit pas être exposée au navigateur). Configuration : `OMDB_API_KEY` dans `backend/.env`. Sans clé, certaines fonctionnalités (recherche, enrichissement) affichent un message côté UI.
+
+## Déploiement (Fly.io — backend)
+
+Le dossier `backend/` contient un **`Dockerfile`** et un **`fly.toml`** (ex. app `cineconnect-api`, région `cdg`). Déploiement typique :
+
+- Installer [Fly CLI](https://fly.io/docs/hands-on/install-flyctl/) (`flyctl`).
+- Se placer dans `backend/`, configurer les **secrets** Fly avec les mêmes variables que la prod (`DATABASE_URL`, `JWT_SECRET`, `FRONTEND_ORIGIN`, `OMDB_API_KEY`, OAuth Google si besoin, etc.).
+- Lancer `flyctl deploy` (compte Fly vérifié si demandé).
+
+Les URLs et secrets de prod doivent correspondre au frontend déployé (`FRONTEND_ORIGIN`, CORS, cookies).
+
+## Branches Git (rappel)
+
+Selon l’équipe, le flux peut être **`main`** (développement) et **`production`** (déploiement). Les fichiers sensibles (`.env`) ne sont pas versionnés ; utiliser `.env.example` comme modèle.
+
 ## Reste à faire (optionnel)
+
 - Option UX : fermer le menu mobile quand on clique en dehors (pas encore implémenté).
 
 ## Journal des évolutions récentes
+
+### Accessibilité / thème clair (récent)
+- **Mode clair** : titres et liens de la page **`/films`** (« Sorties récentes », sections par catégorie) utilisent des couleurs lisibles sur fond clair (`text-zinc-900` + variantes `dark:`).
+- **Accueil** : pastilles « Par où commencer ? » — texte uni (`text-zinc-800` / `dark:text-zinc-100`), sans dégradé arc-en-ciel, pour cohérence avec le reste de l’UI.
+- **Navigation pills** (`PillNav`) : couleur de texte au survol en mode clair ajustée pour éviter blanc sur blanc.
+- **Paramètres** (`/reglages`) : bouton **soleil / lune** dans l’en-tête (à côté de « Retour au profil ») pour basculer clair/sombre, en plus du bloc « Apparence → Thème ».
 
 ### UI/UX (profil, header, films, discussion)
 - Refonte complète de `/profil` (style HUD/RPG, glass panels, progression XP, cartes et sections modernisées).
@@ -94,7 +141,7 @@ Commandes (à lancer depuis `backend/`) :
   - bouton réglages vers une vraie page dédiée
 - Création de `/reglages` (apparence, notifications, raccourcis, zone sensible/déconnexion).
 - Refonte visuelle de `/film/:id` et `/discussion` pour aligner la D.A. avec `/profil` (sans bloc de stats).
-- Page `/films` enrichie avec un carrousel OGL des sorties récentes, filtrage catégorie multi-sélection, et sections style plateforme de streaming.
+- Page `/films` enrichie avec une **bannière hero**, barre recherche + filtres par catégorie, sections type plateforme de streaming (« Nouveautés », « Sorties récentes », carrousels par genre).
 
 ### Data films / seed
 - Ajout d’un seed backend `backend/src/fake_rating/seed_films.ts` pour peupler la table `films` via OMDb avec pagination, anti-doublons, insertion par chunks et tolérance quota.

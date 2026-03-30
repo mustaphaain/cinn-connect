@@ -1,6 +1,22 @@
-# React + TypeScript + Vite
+# Frontend CinéConnect
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Application **React 19** + **TypeScript** + **Vite 7**, avec **Tailwind CSS 4**, **TanStack Router** & **TanStack Query**, **Socket.io** pour le chat, **GSAP** pour quelques animations (ex. `PillNav`).
+
+## Scripts
+
+```bash
+pnpm dev      # serveur de dev (HMR)
+pnpm build    # build production → dist/
+pnpm preview  # prévisualiser le build
+pnpm lint     # ESLint
+```
+
+## Configuration
+
+- **`frontend/.env`** (voir `.env.example`) :
+  - `VITE_API_URL=http://localhost:3001` — URL du backend (cookies + CORS doivent matcher ; préférer `localhost` plutôt que `127.0.0.1`).
+
+Les appels **OMDb** passent par le backend : pas de clé OMDb dans le frontend.
 
 ## Auth (JWT) via cookie HttpOnly
 
@@ -32,17 +48,30 @@ Le backend authentifie avec un **JWT stocké dans un cookie `HttpOnly`**.
 - Le backend stocke la note **1 à 10** ; l’UI la convertit automatiquement en **1 à 5**.
 - Refonte visuelle de `/film/:id` dans la même D.A. que `/profil` (sans section stats).
 
-## Films / Catalogue (mise à jour)
+## Films / catalogue
 
-- Refonte de `/films` :
-  - sections type streaming
-  - tri orienté “sorties récentes”
-  - filtres catégories multi-sélection
-  - carrousel OGL en haut de page pour les nouveautés
-- Animation du carrousel :
-  - glisse vers le haut et disparition fluide quand l’input recherche prend le focus
-  - retour fluide au blur
-- Route `/films/$categorie` stabilisée avec pagination manuelle.
+- **`/films`** : bannière hero, recherche, filtres par catégorie (comportement type onglets), sections « Nouveautés », « Sorties récentes », carrousels horizontaux par genre.
+- La zone hero se **réduit / disparaît** quand le champ recherche est focalisé, pour gagner de la place.
+- **`/films/$categorie`** : liste par catégorie avec pagination robuste face aux réponses OMDb (`useQueries` + chargement de pages manuel).
+
+### Mode clair (lisibilité)
+
+- Titres de section et liens « Voir tout » utilisent **`text-zinc-900`** (ou équivalent) en mode clair et **`dark:text-zinc-50`** / **`dark:text-indigo-300`** en sombre, pour éviter du texte blanc sur fond clair.
+
+## Navigation & thème
+
+- **Desktop** : `Navbar` avec `PillNav`, notifications (demandes d’amis), lien réglages, **bascule thème** (clair / sombre).
+- **Mobile** (`md:hidden` sur la navbar) : barre fixe **`BottomNav`** (Accueil, Films, Discu, Profil). Le thème est accessible depuis **`/reglages`** (bouton soleil/lune en haut de page + bloc « Apparence → Thème »).
+- Thème géré par **`ThemeProvider`** / **`useTheme`** (`src/contexts/`) ; classe **`dark`** sur la racine HTML selon le choix utilisateur ou `prefers-color-scheme`.
+
+## Page d’accueil
+
+- Section **« Par où commencer ? »** : liens vers les catégories ; libellés en **texte uni** (même style que les autres boutons de la section).
+
+## Autres routes utiles
+
+- `/reglages` — Paramètres (apparence, notifications, raccourcis profil/sécurité/amis, déconnexion).
+- `/complete-username` — Première connexion Google (choix du pseudo).
 
 ## Problèmes rencontrés et fixes (frontend)
 
@@ -92,72 +121,7 @@ Recommandé :
 - `frontend/.env` : `VITE_API_URL=http://localhost:3001`
 - URL du front : `http://localhost:5173`
 
-Currently, two official plugins are available:
+## Documentation complémentaire
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- Vue d’ensemble monorepo et journal des évolutions : [`../README.md`](../README.md)
+- API, base de données, OMDb, déploiement : [`../backend/README.md`](../backend/README.md)
