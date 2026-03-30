@@ -28,8 +28,9 @@ export async function getFilmsByGenre(req: Request, res: Response) {
 
   const limit = Math.min(50, Math.max(1, parsePositiveInt(req.query.limit, 10)))
   const offset = Math.max(0, parsePositiveInt(req.query.offset, 0))
+  const fetchLimit = Math.min(250, limit * 5)
 
-  const list = await db
+  const rows = await db
     .select({
       Title: films.title,
       Year: sql<string>`COALESCE(${films.year}, '')`,
@@ -40,8 +41,15 @@ export async function getFilmsByGenre(req: Request, res: Response) {
     .innerJoin(films, eq(filmGenres.filmId, films.id))
     .where(inArray(filmGenres.genre, genres))
     .orderBy(sql`${films.id} DESC`)
-    .limit(limit)
+    .limit(fetchLimit)
     .offset(offset)
+
+  const seen = new Set<string>()
+  const list = rows.filter((m) => {
+    if (seen.has(m.imdbID)) return false
+    seen.add(m.imdbID)
+    return true
+  }).slice(0, limit)
 
   res.json({
     Search: list,
